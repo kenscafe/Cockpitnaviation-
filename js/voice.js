@@ -27,14 +27,16 @@
   // Browser voices: rank the Japanese voices (neural / online ones first) and give each speaker
   // the best voice of its gender, a different one per speaker where the device has enough.
   let jaVoices = [], assign = {};
-  const FEMALE = /nanami|ayumi|haruka|mayu|shiori|aoi|kyoko|o-?ren|mizuki|sayaka|female|女性|google 日本語/i;
-  const MALE = /keita|ichiro|daichi|naoki|otoya|hattori|takumi|\bmale|男性/i;
+  const FEMALE = /nanami|ayumi|haruka|mayu|shiori|aoi|kyoko|o-?ren|mizuki|sayaka|samantha|victoria|karen|moira|tessa|zira|aria|jenny|ava|allison|susan|serena|female|女性|google 日本語|google us english|google uk english female/i;
+  const MALE = /keita|ichiro|daichi|naoki|otoya|hattori|takumi|alex|daniel|fred|david|guy|mark|tom|oliver|google uk english male|\bmale|男性/i;
   const vGender = v => FEMALE.test(v.name) ? 'f' : MALE.test(v.name) ? 'm' : '';
   const vScore = v => (/natural|neural|online|premium|enhanced|siri/i.test(v.name) ? 40 : 0) + (/google/i.test(v.name) ? 20 : 0) + (/microsoft/i.test(v.name) ? 10 : 0) + (v.default ? 2 : 0);
-  const loadVoices = () => { try { jaVoices = speechSynthesis.getVoices().filter(v => /^ja/i.test(v.lang)).sort((a, b) => vScore(b) - vScore(a)); assign = {}; } catch (e) {} };
+  let vLang = '';
+  const loadVoices = () => { try { vLang = SD.lang === 'en' ? 'en' : 'ja'; const re = new RegExp('^' + vLang, 'i'); jaVoices = speechSynthesis.getVoices().filter(v => re.test(v.lang)).sort((a, b) => vScore(b) - vScore(a)); assign = {}; } catch (e) {} };
   if ('speechSynthesis' in window) { loadVoices(); speechSynthesis.onvoiceschanged = loadVoices; }
   const ORDER = ['ai', 'capt', 'fo', 'narr', 'atc', 'cabin', 'gpws'];
   function voiceFor(who) {
+    if (vLang !== (SD.lang === 'en' ? 'en' : 'ja')) loadVoices();
     if (!jaVoices.length) return null;
     if (!assign._done) {
       const used = new Map();
@@ -57,21 +59,21 @@
       const a = voiceFor(c.who);
       let pitch = vc.pitch ?? 1;
       if (a && (a.mismatch || a.shared)) pitch *= a.g === 'm' ? .82 : a.g === 'f' ? 1.2 : 1;   // same voice twice: keep speakers apart
-      const u = new SpeechSynthesisUtterance(c.text); u.lang = 'ja-JP'; u.pitch = Math.max(0, Math.min(2, pitch)); u.rate = vc.rate ?? 1;
+      const u = new SpeechSynthesisUtterance(c.text); u.lang = SD.lang === 'en' ? 'en-US' : 'ja-JP'; u.pitch = Math.max(0, Math.min(2, pitch)); u.rate = vc.rate ?? 1;
       if (a) u.voice = a.v;
       const done = () => { clearTimeout(tm); res(); };
-      const tm = setTimeout(done, c.text.length * 280 + 4000);
+      const tm = setTimeout(done, c.text.length * (SD.lang === 'en' ? 90 : 280) + 4000);
       u.onend = done; u.onerror = done; speechSynthesis.speak(u);
     });
   }
   function sayClaude(c) {
     const vc = (scn.speakers[c.who] || {}).voice || {};
     const [voice, rate] = CL[c.who] || [vc.claude || 'buttery', vc.rate || 1];
-    return tts.speak(c.text, { voice, rate, language: 'ja' }).catch(e => {
+    return tts.speak(c.text, { voice, rate, language: SD.lang === 'en' ? 'en' : 'ja' }).catch(e => {
       const code = e && e.code;
-      if (code === 'not_granted' || code === 'unavailable') turnOff(code === 'not_granted' ? '読み上げがこのページでオフになっています' : 'いまは読み上げを使えません');
-      else if (code === 'no_gesture') turnOff('もう一度「音声 オン」を押してください');
-      else if (code === 'rate_limited') turnOff('読み上げの上限に達しました。少し待ってから再開してください');
+      if (code === 'not_granted' || code === 'unavailable') turnOff(code === 'not_granted' ? SD.L('読み上げがこのページでオフになっています', 'Speech is turned off for this page') : SD.L('いまは読み上げを使えません', 'Speech is not available right now'));
+      else if (code === 'no_gesture') turnOff(SD.L('もう一度「音声 オン」を押してください', 'Press “Voice on” again'));
+      else if (code === 'rate_limited') turnOff(SD.L('読み上げの上限に達しました。少し待ってから再開してください', 'Speech limit reached. Wait a moment, then try again'));
     });
   }
   let clip = null;
@@ -91,7 +93,7 @@
     if (c.chime) { chime(); await wait(900); }
     if (c.radio) { click(); burst(.14, .16); await wait(180); if (my !== token) return; startHiss(); }
     try {
-      if (sel.value === 'file' && c.audio && await sayFile(c)) {}
+      if (sel.value === 'file' && c.audio && SD.lang !== 'en' && await sayFile(c)) {}
       else if (my === token) await (sel.value === 'claude' && tts ? sayClaude(c) : sel.value === 'browser' ? sayBrowser(c) : fallback(c));
     }
     finally { if (c.radio) { stopHiss(); burst(.22, .14); click(); } }
@@ -102,7 +104,7 @@
     const c = scn.dialogue[i];
     if (!c) { capTxt.textContent = ''; capWho.textContent = ''; capWho.style.color = ''; return; }
     const sp = scn.speakers[c.who] || {};
-    capTxt.textContent = c.text; capWho.textContent = c.label || sp.label || c.who; capWho.className = 'spk'; capWho.style.color = sp.color || '';
+    capTxt.textContent = c.text; capWho.textContent = SD.t(c.label || sp.label || c.who); capWho.className = 'spk'; capWho.style.color = sp.color || '';
   }
   function say(i) {
     const my = ++token; speaking = true; cap.classList.add('live');
@@ -134,13 +136,13 @@
   function setScenario(s) { stopSpeech(); held = false; scn = s; cur = -2; assign = {}; }
   function turnOn() {
     audio();
-    on = true; btn.setAttribute('aria-pressed', 'true'); btn.textContent = '音声 オン'; stat.textContent = '1×で再生し、セリフが終わるまで次の場面を待ちます';
+    on = true; btn.setAttribute('aria-pressed', 'true'); btn.textContent = SD.t('音声 オン'); stat.textContent = SD.L('1×で再生し、セリフが終わるまで次の場面を待ちます', 'Plays at 1× and waits for each line to finish');
     app().setSpeed(1);
     cur = idxAt(app().time()); show(cur); if (cur >= 0) say(cur);
     app().play();
   }
   function turnOff(msg) {
-    on = false; btn.setAttribute('aria-pressed', 'false'); btn.textContent = '音声 オフ'; stat.textContent = msg || '';
+    on = false; btn.setAttribute('aria-pressed', 'false'); btn.textContent = SD.t('音声 オフ'); stat.textContent = msg || '';
     stopSpeech(); if (held) { held = false; app().play(); }
   }
   btn.addEventListener('click', () => on ? turnOff() : turnOn());
@@ -154,9 +156,10 @@
     window.claude.use('tts').then(t => {
       if (!t) return;
       tts = t; optC.disabled = false;
-      tts.onState(({ state, reason }) => { if (state === 'idle' && reason === 'viewer_stopped' && on) turnOff('読み上げを止めました'); });
+      tts.onState(({ state, reason }) => { if (state === 'idle' && reason === 'viewer_stopped' && on) turnOff(SD.L('読み上げを止めました', 'Speech stopped')); });
     }).catch(() => {});
   }
 
+  SD.onLang && SD.onLang(() => { btn.textContent = SD.t(on ? '音声 オン' : '音声 オフ'); assign = {}; });
   SD.Voice = { update, setScenario, isOn: () => on, stop: () => { if (on) turnOff(); } };
 })();

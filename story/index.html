@@ -449,16 +449,17 @@ html:not(.en) .t-en, html.en .t-ja{display:none}
   // language
   function setLang(l){
     root.classList.toggle('en',l==='en'); root.lang=l;
+    document.getElementById('demo-link').href='../index.html?lang='+l;
     document.getElementById('lang-ja').setAttribute('aria-pressed',l==='ja');
     document.getElementById('lang-en').setAttribute('aria-pressed',l==='en');
-    try{localStorage.setItem('cockpitDemo.storyLang',l);}catch(e){}
+    try{localStorage.setItem('cockpitDemo.lang',l);}catch(e){}
     try{var u=new URL(location.href);if(u.searchParams.get('lang')!==l){u.searchParams.set('lang',l);history.replaceState(null,'',u);}}catch(e){}
   }
   document.getElementById('lang-ja').onclick=function(){setLang('ja');};
   document.getElementById('lang-en').onclick=function(){setLang('en');};
   var saved=null;
   try{saved=new URL(location.href).searchParams.get('lang');}catch(e){}
-  if(saved!=='ja'&&saved!=='en'){try{saved=localStorage.getItem('cockpitDemo.storyLang');}catch(e){}}
+  if(saved!=='ja'&&saved!=='en'){try{saved=localStorage.getItem('cockpitDemo.lang');}catch(e){}}
   setLang(saved==='en'?'en':'ja');
 
   // playback

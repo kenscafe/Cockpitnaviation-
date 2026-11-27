@@ -11,21 +11,28 @@
   const LV_COL = { warning: COL.r, caution: COL.a, advisory: COL.c };
   const $ = id => document.getElementById(id);
   const cache = new Map();
-  const setT = (id, s) => { const n = $(id); if (n && n.textContent !== s) n.textContent = s; };
+  const setT = (id, s) => { const n = $(id); s = SD.t(s); if (n && n.textContent !== s) n.textContent = s; };
+  // 長い文言（英語など）は枠に収まるよう横に詰める
+  const fitT = (id, txt, maxW) => {
+    setT(id, txt); const n = $(id); if (!n) return;
+    const k = n.textContent + '|' + maxW; if (n._fit === k) return; n._fit = k;
+    n.removeAttribute('textLength'); n.removeAttribute('lengthAdjust');
+    try { if (n.getComputedTextLength() > maxW) { n.setAttribute('textLength', maxW); n.setAttribute('lengthAdjust', 'spacingAndGlyphs'); } } catch (e) {}
+  };
   const setA = (id, k, v) => { const n = typeof id === 'string' ? $(id) : id; if (!n) return; const key = (n.id || '') + '|' + k; v = String(v); if (cache.get(key) === v) return; cache.set(key, v); n.setAttribute(k, v); };
   const setC = (id, base, c) => setA(id, 'class', (base ? base + ' ' : '') + c);
-  const el = (tag, attrs, parent, text) => { const n = document.createElementNS(NS, tag); for (const k in attrs) n.setAttribute(k, attrs[k]); if (text != null) n.textContent = text; if (parent) parent.appendChild(n); return n; };
+  const el = (tag, attrs, parent, text) => { const n = document.createElementNS(NS, tag); for (const k in attrs) n.setAttribute(k, attrs[k]); if (text != null) n.textContent = SD.t(text); if (parent) parent.appendChild(n); return n; };
   const clear = n => { while (n.firstChild) n.removeChild(n.firstChild); };
   const pad3 = v => String(Math.round(((v % 360) + 360) % 360)).padStart(3, '0');
   const r0 = Math.round;
   const spans = (id, parts) => { // parts: [[text, cls], ...]
-    const n = $(id), key = JSON.stringify(parts);
+    const n = $(id), key = SD.lang + JSON.stringify(parts);
     if (n._k === key) return; n._k = key; clear(n);
     parts.forEach(([t, c]) => el('tspan', { class: c }, n, t));
   };
   const pill = (id, text, status) => {
     const t = $(id + 'T'), r = $(id + 'R'); if (!t || !r) return;
-    const cls = ST_CLS[status] || 'grn';
+    const cls = ST_CLS[status] || 'grn'; text = SD.t(text);
     if (t.textContent !== text || !r._sized) { t.textContent = text; try { const w = t.getComputedTextLength(); if (w > 0) { r.setAttribute('width', Math.ceil(w) + 18); r._sized = true; } } catch (e) {} }
     setC(t, t.getAttribute('class').split(' ').filter(c => c === 't-m' || c === 't-j').join(' '), cls);
     setA(r, 'stroke', ST_COL[status] || COL.g);
@@ -124,8 +131,9 @@
       const px = x(e.t), py = LANE[e.who], col = e.who === 'ai' ? COL.c : e.who === 'atc' ? '#e061d2' : e.who === 'sys' ? COL.g : COL.fg;
       el('circle', { cx: px, cy: py, r: 4.5, fill: col }, dots);
       if (latest[e.who] !== e) return;
-      const txt = e.text.replace(/^(AI|機長|管制|副操縦士)：/, '');
-      const short = txt.length > 18 ? txt.slice(0, 17) + '…' : txt;
+      const txt = e.text.replace(/^(AI|機長|管制|副操縦士)：/, '').replace(/^(AI|CAPT|ATC|F\/O): /, '');
+      const max = SD.L(18, 30);
+      const short = txt.length > max ? txt.slice(0, max - 1) + '…' : txt;
       const right = px > 330;
       el('text', { x: right ? px - 7 : px + 7, y: py - 9, 'text-anchor': right ? 'end' : 'start', fill: col, 'font-family': 'Noto Sans JP, sans-serif', 'font-size': 10 }, dots, short);
     });
@@ -147,9 +155,9 @@
     setT('fcuHdg', d.fcu_hdg != null ? pad3(d.fcu_hdg) : pad3(v.hdg));
     setT('fcuAlt', d.fcu_alt != null ? String(d.fcu_alt) : '-----');
     setT('fcuVs', d.fcu_vs != null ? (d.fcu_vs > 0 ? '+' : '') + d.fcu_vs : '-----');
-    setT('fcuAi', tg.alt != null ? `AI案 ${tg.alt >= 18000 ? tg.alt / 100 : tg.alt}` : '');
-    setT('fcuAiSpd', tg.spd != null ? `AI案 ${tg.spd}` : '');
-    setT('fcuAiHdg', tg.hdg != null ? `AI案 ${pad3(tg.hdg)}` : '');
+    setT('fcuAi', tg.alt != null ? SD.L('AI案 ', 'AI ') + (tg.alt >= 18000 ? tg.alt / 100 : tg.alt) : '');
+    setT('fcuAiSpd', tg.spd != null ? SD.L('AI案 ', 'AI ') + tg.spd : '');
+    setT('fcuAiHdg', tg.hdg != null ? SD.L('AI案 ', 'AI ') + pad3(tg.hdg) : '');
     setA('ap1Bar', 'opacity', d.ap ? 1 : 0); setC('ap1T', '', d.ap ? 'fg' : 'dim');
     setA('athrBar', 'opacity', air ? 1 : 0); setC('athrT', '', air ? 'fg' : 'dim');
     const AIM = ['AI MONITOR · DISPLAY', 'AI ASSIST · ADVISORY', 'AI AUTO · APPROVED'];
@@ -202,7 +210,7 @@
     setA('vdOwn', 'd', `M300 ${yv(v.alt).toFixed(1)} H372 L420 ${yv(tgtAlt).toFixed(1)} H504`);
     setA('vdPlane', 'transform', `translate(0 ${(yv(v.alt) - 522).toFixed(1)})`);
     setA('vdAi', 'd', tg.alt != null ? `M372 ${yv(v.alt).toFixed(1)} L420 ${yv(tg.alt).toFixed(1)} H504` : '');
-    setT('vdCur', SD.fmtAlt(v.alt)); setT('vdAiT', tg.alt != null ? `${SD.fmtAlt(tg.alt)} AI案` : '');
+    setT('vdCur', SD.fmtAlt(v.alt)); setT('vdAiT', tg.alt != null ? `${SD.fmtAlt(tg.alt)} ${SD.L('AI案', 'AI')}` : '');
     setA('vdAiT', 'y', tg.alt != null ? (yv(tg.alt) - 5).toFixed(1) : 500);
 
     // EWD
@@ -239,12 +247,12 @@
     setT('aiMode', 'MODE: ' + ['MONITOR', 'ADVISORY', 'AUTO'][auIdx]);
     const shown = pend || last;
     if (!shown) {
-      setT('aiTitle', scn.aiIdle.title); setT('aiLine', scn.aiIdle.line); setT('aiSrc', scn.aiIdle.src);
+      fitT('aiTitle', scn.aiIdle.title, 432); fitT('aiLine', scn.aiIdle.line, 432); fitT('aiSrc', scn.aiIdle.src, 432);
       setA('aiBox', 'stroke', COL.edge); setA('aiBar', 'width', 0); setT('aiConf', '—');
       setA('aiBtnA', 'opacity', .3); setA('aiBtnR', 'opacity', .3); setT('aiBtnAT', '承認'); setT('aiBtnRT', '却下');
     } else {
       const p = shown.proposal, rej = !pend && shown.decision === 'reject';
-      setT('aiTitle', p.title); setT('aiLine', rej && p.rejectNote ? p.rejectNote : p.line); setT('aiSrc', p.src);
+      fitT('aiTitle', p.title, 432); fitT('aiLine', rej && p.rejectNote ? p.rejectNote : p.line, 432); fitT('aiSrc', p.src, 432);
       setA('aiBar', 'width', r0(200 * p.conf)); setT('aiConf', p.conf.toFixed(2));
       setA('aiBox', 'stroke', pend ? COL.c : rej ? COL.a : COL.g);
       setA('aiBtnA', 'opacity', rej ? .3 : 1); setT('aiBtnAT', pend ? '承認' : rej ? '承認' : '承認済');
@@ -254,7 +262,7 @@
     [['aiC2', A[0]], ['aiC3', A[1]]].forEach(([id, a]) => {
       setA(id, 'opacity', a ? 1 : 0);
       if (!a) return;
-      setT(id + 'T', a.jp || a.title); setT(id + 'D', a.detail || '');
+      fitT(id + 'T', a.jp || a.title, 408); fitT(id + 'D', a.detail || '', 408);
       setA(id + 'Ic', 'fill', LV_COL[a.level]); setA(id + 'Box', 'stroke', a.level === 'warning' ? COL.r : COL.edge);
     });
     setA('aiNoAlert', 'opacity', A.length ? 0 : 1);
@@ -277,7 +285,7 @@
       if (has(`ENG${n}_FAIL`)) return ['FADEC 停止', 'fail'];
       if (has(`ENG${n}_OVHT`)) return ['EGT 超過', 'fail'];
       if (has(`ENG${n}_EGT`)) return ['FADEC EGT↑', 'caution'];
-      if (d['thr_lim_' + n]) return [`推力制限 ${d['thr_lim_' + n]}%`, 'caution'];
+      if (d['thr_lim_' + n]) return [SD.L(`推力制限 ${d['thr_lim_' + n]}%`, `Thrust limit ${d['thr_lim_' + n]}%`), 'caution'];
       return ['FADEC 正常', 'ok'];
     };
     const hydOk = [1, 2, 3].filter(n => h.nodes['hyd_' + n] === 'ok');
@@ -286,9 +294,9 @@
     const adcBad = [1, 2, 3].filter(n => h.nodes['adc_' + n] !== 'ok');
     const meshTxt = [
       engTxt(1), engTxt(2),
-      hydBad.length ? [`HYD${hydBad.join('+')} ${hydBad.some(n => h.nodes['hyd_' + n] === 'fail') ? '喪失' : '低圧'} · ${hydOk.length}/3`, hydBad.length > 1 ? 'fail' : 'caution'] : ['3系統 ' + r0(Math.min(v.hyd_1, v.hyd_2, v.hyd_3) / 100) * 100 + 'psi', 'ok'],
-      genOk === 2 ? ['発電機 ×2', 'ok'] : [`発電機 ${genOk}/2${v.apu_gen > 5 ? ' + APU' : ''}`, v.apu_gen > 5 || genOk ? 'caution' : 'fail'],
-      adcBad.length ? [`ADC-${adcBad.join(',')} 不一致`, 'caution'] : d.datalink !== 'ok' ? ['SATCOM 断', 'caution'] : ['IRS×3 · GNSS', 'ok']
+      hydBad.length ? [`HYD${hydBad.join('+')} ${hydBad.some(n => h.nodes['hyd_' + n] === 'fail') ? SD.L('喪失', 'lost') : SD.L('低圧', 'low')} · ${hydOk.length}/3`, hydBad.length > 1 ? 'fail' : 'caution'] : [SD.L('3系統 ', '3 sys ') + r0(Math.min(v.hyd_1, v.hyd_2, v.hyd_3) / 100) * 100 + 'psi', 'ok'],
+      genOk === 2 ? ['発電機 ×2', 'ok'] : [SD.L(`発電機 ${genOk}/2`, `Generators ${genOk}/2`) + (v.apu_gen > 5 ? ' + APU' : ''), v.apu_gen > 5 || genOk ? 'caution' : 'fail'],
+      adcBad.length ? [`ADC-${adcBad.join(',')} ` + SD.L('不一致', 'disagree'), 'caution'] : d.datalink !== 'ok' ? ['SATCOM 断', 'caution'] : ['IRS×3 · GNSS', 'ok']
     ];
     meshTxt.forEach(([s, st], i) => { setT('mN' + (i + 1) + 'S', s); setC('mN' + (i + 1) + 'S', '', ST_CLS[st]); setA('mN' + (i + 1), 'stroke', st === 'ok' ? COL.edge : ST_COL[st]); });
     setA('mProp', 'class', pend ? 'flow' : ''); setA('mProp', 'stroke-opacity', pend ? 1 : .4);
@@ -305,7 +313,7 @@
     setT('hHealth', `${h.ok}/${h.total}`); setC('hHealth', '', h.ok === h.total ? 'grn' : 'amb');
     setT('hLink', d.datalink === 'ok' ? 'OK' : 'LOST'); setC('hLink', '', d.datalink === 'ok' ? 'grn' : 'red');
     const nW = A.filter(a => a.level === 'warning').length, nC = A.filter(a => a.level === 'caution').length;
-    setT('hAlerts', nW ? (nC ? `${nW}警告 ${nC}注意` : `${nW} 警告`) : nC ? `${nC} 注意` : '0'); setC('hAlerts', '', nW ? 'red' : nC ? 'amb' : 'grn');
+    setT('hAlerts', nW ? (nC ? SD.L(`${nW}警告 ${nC}注意`, `${nW} WARN ${nC} CAUT`) : SD.L(`${nW} 警告`, `${nW} WARN`)) : nC ? SD.L(`${nC} 注意`, `${nC} CAUT`) : '0'); setC('hAlerts', '', nW ? 'red' : nC ? 'amb' : 'grn');
     setT('dClock', `DEMO ${SD.fmt(t)} / ${SD.fmt(scn.meta.duration)} · ${SD.fmtAlt(v.alt)} · GS ${r0(v.gs)} · HDG ${pad3(v.hdg)}`);
 
     // ---------- system layout
@@ -325,16 +333,16 @@
     const hydN = hydOk.length;
     pill('lp1', `HYD ${hydN}/3 · GEN ${genOk}/2${apuOn ? ' · APU' : ''}`, hydN === 3 && genOk === 2 ? 'ok' : hydN < 2 || (genOk === 0 && !apuOn) ? 'fail' : 'caution');
     const e1 = engTxt(1), e2 = engTxt(2);
-    pill('lp2', e1[1] === 'ok' && e2[1] === 'ok' ? 'FADEC ×2 正常' : e2[1] !== 'ok' ? `ENG 2 · ${e2[0].replace('FADEC ', '')}` : `ENG 1 · ${e1[0].replace('FADEC ', '')}`, e1[1] === 'fail' || e2[1] === 'fail' ? 'fail' : e1[1] === 'ok' && e2[1] === 'ok' ? 'ok' : 'caution');
+    pill('lp2', e1[1] === 'ok' && e2[1] === 'ok' ? 'FADEC ×2 正常' : e2[1] !== 'ok' ? `ENG 2 · ${SD.t(e2[0]).replace('FADEC ', '')}` : `ENG 1 · ${SD.t(e1[0]).replace('FADEC ', '')}`, e1[1] === 'fail' || e2[1] === 'fail' ? 'fail' : e1[1] === 'ok' && e2[1] === 'ok' ? 'ok' : 'caution');
     pill('lp3', ['MONITOR · 機上推論', 'ADVISORY · 機上推論', 'AUTO · 承認範囲で実行'][auIdx], 'info');
     pill('lp4', `VOTE ${h.fccOk}/3`, h.fccOk === 3 ? 'ok' : h.fccOk === 2 ? 'caution' : 'fail');
     const badF = [1, 2, 3].filter(i => h.nodes['fcc_' + i] !== 'ok');
-    setT('lC4a', badF.length ? `FCC-${badF.join(',')} は迎角センサの` : '全3系統が一致して'); setT('lC4b', badF.length ? '不一致で除外中。' : '正常に制御中。');
+    setT('lC4a', badF.length ? SD.L(`FCC-${badF.join(',')} は迎角センサの`, `FCC-${badF.join(',')} voted out on`) : '全3系統が一致して'); setT('lC4b', badF.length ? SD.L('不一致で除外中。', 'AOA disagreement.') : '正常に制御中。');
     pill('lp6', hydN === 3 ? 'REU 12/12' : `REU 12/12 · HYD ${hydN}/3`, hydN === 3 ? 'ok' : 'caution');
-    pill('lp7', imb ? `FOB ${(v.fob / 1000).toFixed(1)} t · 左右差 ${(Math.abs(v.fuel_l - v.fuel_r) / 1000).toFixed(1)} t` : `FOB ${(v.fob / 1000).toFixed(1)} t`, has('FUEL_LOW') ? 'fail' : imb ? 'caution' : 'ok');
+    pill('lp7', imb ? `FOB ${(v.fob / 1000).toFixed(1)} t · ${SD.L('左右差', 'L/R diff')} ${(Math.abs(v.fuel_l - v.fuel_r) / 1000).toFixed(1)} t` : `FOB ${(v.fob / 1000).toFixed(1)} t`, has('FUEL_LOW') ? 'fail' : imb ? 'caution' : 'ok');
     pill('lp8', 'A/B OK', 'ok');
     pill('lp9', d.datalink === 'ok' ? 'SATCOM OK' : 'SATCOM LOST', d.datalink === 'ok' ? 'ok' : 'fail');
-    pill('lp10', has('TCAS_RA') ? 'TCAS RA 回避中' : has('WINDSHEAR') ? 'ウィンドシア検知' : has('TCAS_TA') ? 'TCAS 接近機' : adcBad.length ? `迎角 ${adcBad.length}系統 不一致` : has('WX_AHEAD') ? '気象レーダー 積乱雲を探知' : has('XWIND') ? `横風 ${r0(v.xwind)}kt 制限超過` : 'センサ 全系統一致', has('TCAS_RA') || has('WINDSHEAR') ? 'fail' : adcBad.length || has('WX_AHEAD') || has('XWIND') || has('TCAS_TA') ? 'caution' : 'ok');
+    pill('lp10', has('TCAS_RA') ? 'TCAS RA 回避中' : has('WINDSHEAR') ? 'ウィンドシア検知' : has('TCAS_TA') ? 'TCAS 接近機' : adcBad.length ? SD.L(`迎角 ${adcBad.length}系統 不一致`, `AOA ${adcBad.length} sys disagree`) : has('WX_AHEAD') ? '気象レーダー 積乱雲を探知' : has('XWIND') ? SD.L(`横風 ${r0(v.xwind)}kt 制限超過`, `Crosswind ${r0(v.xwind)} kt over limit`) : 'センサ 全系統一致', has('TCAS_RA') || has('WINDSHEAR') ? 'fail' : adcBad.length || has('WX_AHEAD') || has('XWIND') || has('TCAS_TA') ? 'caution' : 'ok');
 
     // focus
     const sc = scn.scenes[SD.sceneAt(scn, t)];
