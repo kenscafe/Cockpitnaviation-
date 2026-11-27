@@ -3,6 +3,7 @@
 (function () {
   const SD = window.SkyDemo = window.SkyDemo || {};
   SD.builtins = SD.builtins || [];
+  SD.L = SD.L || (ja => ja); SD.t = SD.t || (s => s); SD.localize = SD.localize || (r => r); // i18n.js が無い環境（tools/validate.mjs）用
   SD.register = s => { SD.builtins.push(s); };
 
   const FORMAT = 'cockpit-demo-scenario/1';
@@ -130,7 +131,7 @@
 
     const scenes = (s.scenes || []).map((x, i) => {
       if (typeof x.t !== 'number') errors.push(`scenes[${i}].t がありません`);
-      return { t: x.t, name: x.name || `シーン${i + 1}`, phase: x.phase || '', focus: x.focus || null };
+      return { t: x.t, name: x.name || SD.L(`シーン${i + 1}`, `Scene ${i + 1}`), phase: x.phase || '', focus: x.focus || null };
     }).sort((a, b) => a.t - b.t);
     if (!scenes.length) errors.push('scenes が1つもありません');
     scenes.forEach((x, i) => { x.end = i + 1 < scenes.length ? scenes[i + 1].t : duration; });
@@ -160,7 +161,7 @@
 
     let events = (s.events || []).map(e => Array.isArray(e) ? { t: e[0], who: e[1], text: e[2] } : e).sort((a, b) => a.t - b.t);
     if (!events.length) events = dialogue.filter(d => speakers[d.who].lane).map(d => ({ t: d.t, who: speakers[d.who].lane, text: d.text }));
-    if (!events.length || events[0].t > 0) events.unshift({ t: 0, who: 'sys', text: '準備完了' });
+    if (!events.length || events[0].t > 0) events.unshift({ t: 0, who: 'sys', text: SD.L('準備完了', 'Ready') });
 
     if (errors.length) return { errors, warnings };
     const scn = {
@@ -170,7 +171,7 @@
       planned: s.planned && isKeys(s.planned.alt) ? sortKeys(s.planned.alt) : null,
       chart: Object.assign({ markers: [], weather: [] }, s.chart || {}),
       alertNotes: s.alertNotes || {},
-      aiIdle: Object.assign({ title: '自己診断 完了', line: '全システム正常 ・ 提案なし', src: '待機中：全データを監視しています' }, s.aiIdle || {})
+      aiIdle: Object.assign(SD.L({ title: '自己診断 完了', line: '全システム正常 ・ 提案なし', src: '待機中：全データを監視しています' }, { title: 'Self-test complete', line: 'All systems normal · no proposals', src: 'Standby: monitoring all data' }), s.aiIdle || {})
     };
     const altKeys = sensors.alt ? sensors.alt.keys : [[0, 0]];
     scn.maxAlt = Math.max(10000, ...altKeys.map(k => k[1]), ...(scn.planned || []).map(k => k[1]));
@@ -259,10 +260,10 @@
     // engines
     for (const n of [1, 2]) {
       const o = 3 - n, egt = v['egt_' + n], eo = v['egt_' + o];
-      if (air && v['n2_' + n] < L.n2Min) { add(`ENG${n}_FAIL`, 'warning', `ENG ${n} FAIL`, { jp: `エンジン${n} 停止`, detail: `N2 ${v['n2_' + n].toFixed(1)}% ・ 片発で飛行中`, sys: [2], eng: n }); st['fadec_' + n] = 'fail'; st['gen_' + n] = 'off'; }
-      else if (egt > L.egtMax) { add(`ENG${n}_OVHT`, 'warning', `ENG ${n} EGT OVER LIMIT`, { jp: `エンジン${n} 排気温度 超過`, detail: `EGT ${r0(egt)}°C ・ 上限 ${L.egtMax}°C`, sys: [2], eng: n }); st['fadec_' + n] = 'fail'; }
+      if (air && v['n2_' + n] < L.n2Min) { add(`ENG${n}_FAIL`, 'warning', `ENG ${n} FAIL`, { jp: SD.L(`エンジン${n} 停止`, `Engine ${n} failed`), detail: SD.L(`N2 ${v['n2_' + n].toFixed(1)}% ・ 片発で飛行中`, `N2 ${v['n2_' + n].toFixed(1)}% · flying on one engine`), sys: [2], eng: n }); st['fadec_' + n] = 'fail'; st['gen_' + n] = 'off'; }
+      else if (egt > L.egtMax) { add(`ENG${n}_OVHT`, 'warning', `ENG ${n} EGT OVER LIMIT`, { jp: SD.L(`エンジン${n} 排気温度 超過`, `Engine ${n} EGT over limit`), detail: SD.L(`EGT ${r0(egt)}°C ・ 上限 ${L.egtMax}°C`, `EGT ${r0(egt)}°C · limit ${L.egtMax}°C`), sys: [2], eng: n }); st['fadec_' + n] = 'fail'; }
       else if (egt - eo > L.egtSplit && v['n1_' + n] <= v['n1_' + o] + 1 && v['n2_' + o] > L.n2Min) {
-        add(`ENG${n}_EGT`, 'caution', `ENG ${n} EGT TREND`, { jp: `ENG ${n} 排気温度 上昇傾向`, detail: `ENG${o}比 +${r0(egt - eo)}°C ・ 上限まで ${r0(L.egtMax - egt)}°C`, sys: [2], eng: n });
+        add(`ENG${n}_EGT`, 'caution', `ENG ${n} EGT TREND`, { jp: SD.L(`ENG ${n} 排気温度 上昇傾向`, `ENG ${n} EGT rising`), detail: SD.L(`ENG${o}比 +${r0(egt - eo)}°C ・ 上限まで ${r0(L.egtMax - egt)}°C`, `+${r0(egt - eo)}°C vs ENG${o} · ${r0(L.egtMax - egt)}°C to limit`), sys: [2], eng: n });
         st['fadec_' + n] = 'caution';
       }
       if (d['thr_lim_' + n]) { if (st['fadec_' + n] === 'ok') st['fadec_' + n] = 'caution'; }
@@ -272,30 +273,30 @@
     aoa.forEach((a, i) => {
       if (Math.abs(a - med) > L.aoaDisagree) {
         st['adc_' + (i + 1)] = 'fail'; st['fcc_' + (i + 1)] = 'isolated';
-        add(`FCC${i + 1}_AOA`, 'caution', `FCC ${i + 1} AOA DISAGREE`, { jp: `FCC-${i + 1} 迎角センサ不一致`, detail: `${a.toFixed(1)}° / 他2系統 ${med.toFixed(1)}° ・ 投票から自動除外`, actions: [`· FCC ${i + 1} .... VOTED OUT`], sys: [4, 10] });
+        add(`FCC${i + 1}_AOA`, 'caution', `FCC ${i + 1} AOA DISAGREE`, { jp: SD.L(`FCC-${i + 1} 迎角センサ不一致`, `FCC-${i + 1} AOA sensor disagree`), detail: SD.L(`${a.toFixed(1)}° / 他2系統 ${med.toFixed(1)}° ・ 投票から自動除外`, `${a.toFixed(1)}° / other two ${med.toFixed(1)}° · auto voted out`), actions: [`· FCC ${i + 1} .... VOTED OUT`], sys: [4, 10] });
       }
     });
     // hydraulics
     for (const n of [1, 2, 3]) {
       const p = v['hyd_' + n];
-      if (p < L.hydFail) { st['hyd_' + n] = 'fail'; add(`HYD${n}_FAIL`, 'caution', `HYD ${n} SYS FAIL`, { jp: `油圧 ${n}系統 喪失`, detail: `${r0(p)} psi ・ 残り系統で操縦可能`, actions: ['· LDG DIST ....... +18%'], sys: [1, 6] }); }
-      else if (p < L.hydLow) { st['hyd_' + n] = 'caution'; add(`HYD${n}_LO`, 'caution', `HYD ${n} LO PR`, { jp: `油圧 ${n}系統 圧力低下`, detail: `${r0(p)} psi（正常 3000）・ 低下中`, sys: [1, 6] }); }
+      if (p < L.hydFail) { st['hyd_' + n] = 'fail'; add(`HYD${n}_FAIL`, 'caution', `HYD ${n} SYS FAIL`, { jp: SD.L(`油圧 ${n}系統 喪失`, `Hydraulic sys ${n} lost`), detail: SD.L(`${r0(p)} psi ・ 残り系統で操縦可能`, `${r0(p)} psi · controllable on remaining systems`), actions: ['· LDG DIST ....... +18%'], sys: [1, 6] }); }
+      else if (p < L.hydLow) { st['hyd_' + n] = 'caution'; add(`HYD${n}_LO`, 'caution', `HYD ${n} LO PR`, { jp: SD.L(`油圧 ${n}系統 圧力低下`, `Hydraulic sys ${n} low pressure`), detail: SD.L(`${r0(p)} psi（正常 3000）・ 低下中`, `${r0(p)} psi (normal 3000) · falling`), sys: [1, 6] }); }
     }
     // electrics
-    for (const n of [1, 2]) if (v['gen_' + n] < L.genMin && v['n2_' + n] > L.n2Min) { st['gen_' + n] = 'fail'; add(`GEN${n}_FAULT`, 'caution', `ELEC GEN ${n} FAULT`, { jp: `発電機 ${n} 故障`, detail: `出力 ${r0(v['gen_' + n])} kVA ・ 残りの発電機で給電中`, actions: d.apu === 'off' ? ['· APU ........... START'] : [], sys: [1] }); }
+    for (const n of [1, 2]) if (v['gen_' + n] < L.genMin && v['n2_' + n] > L.n2Min) { st['gen_' + n] = 'fail'; add(`GEN${n}_FAULT`, 'caution', `ELEC GEN ${n} FAULT`, { jp: SD.L(`発電機 ${n} 故障`, `Generator ${n} fault`), detail: SD.L(`出力 ${r0(v['gen_' + n])} kVA ・ 残りの発電機で給電中`, `Output ${r0(v['gen_' + n])} kVA · powered by the other generator`), actions: d.apu === 'off' ? ['· APU ........... START'] : [], sys: [1] }); }
     if (d.apu === 'fail') st.apu = 'fail'; else if (d.apu === 'off') st.apu = 'off';
     // fuel
     const imb = v.fuel_l - v.fuel_r;
-    if (Math.abs(imb) > L.fuelImbalance) add('FUEL_IMBAL', 'caution', 'FUEL IMBALANCE', { jp: '燃料の左右不均衡', detail: `左 ${(v.fuel_l / 1000).toFixed(1)} t ／ 右 ${(v.fuel_r / 1000).toFixed(1)} t ・ 差 ${(Math.abs(imb) / 1000).toFixed(1)} t`, actions: ['· FUEL X FEED ...... OPEN'], sys: [7] });
-    if (v.fob < L.fuelLow) add('FUEL_LOW', 'warning', 'FUEL LO LEVEL', { jp: '燃料残量 低下', detail: `残り ${(v.fob / 1000).toFixed(1)} t`, sys: [7] });
+    if (Math.abs(imb) > L.fuelImbalance) add('FUEL_IMBAL', 'caution', 'FUEL IMBALANCE', { jp: SD.L('燃料の左右不均衡', 'Fuel imbalance'), detail: SD.L(`左 ${(v.fuel_l / 1000).toFixed(1)} t ／ 右 ${(v.fuel_r / 1000).toFixed(1)} t ・ 差 ${(Math.abs(imb) / 1000).toFixed(1)} t`, `L ${(v.fuel_l / 1000).toFixed(1)} t / R ${(v.fuel_r / 1000).toFixed(1)} t · diff ${(Math.abs(imb) / 1000).toFixed(1)} t`), actions: ['· FUEL X FEED ...... OPEN'], sys: [7] });
+    if (v.fob < L.fuelLow) add('FUEL_LOW', 'warning', 'FUEL LO LEVEL', { jp: SD.L('燃料残量 低下', 'Fuel low'), detail: SD.L(`残り ${(v.fob / 1000).toFixed(1)} t`, `${(v.fob / 1000).toFixed(1)} t remaining`), sys: [7] });
     // weather / landing
-    if (v.xwind > L.xwind) add('XWIND', 'caution', `LDG XWIND ${r0(v.xwind)}KT`, { jp: `着陸滑走路の横風 ${r0(v.xwind)}kt`, detail: `制限 ${L.xwind}kt を超過 ・ 滑走路の変更を検討`, sys: [10] });
-    if (v.wx_level >= L.wxLevel && v.wx_dist < L.wxDist && Math.abs(v.wx_brg) < 45) add('WX_AHEAD', 'caution', `WX AHEAD ${r0(v.wx_dist)}KM`, { jp: `前方 ${r0(v.wx_dist)}km に積乱雲`, detail: `強度 ${v.wx_level}/3 ・ 相対方位 ${r0(v.wx_brg)}°`, sys: [10] });
-    if (v.cab_alt > L.cabAlt) add('CAB_PR', 'warning', 'CAB PR EXCESS CAB ALT', { jp: '客室高度 異常上昇', detail: `客室高度 ${r0(v.cab_alt / 100) * 100} ft ・ 酸素マスク展開 ・ 降下が必要`, sys: [5] });
-    if (d.tcas === 'ra_climb' || d.tcas === 'ra_descend') add('TCAS_RA', 'warning', `TCAS RA ${d.tcas === 'ra_climb' ? 'CLIMB' : 'DESCEND'}`, { jp: `TCAS 回避指示：${d.tcas === 'ra_climb' ? '上昇' : '降下'}`, detail: '接近機あり ・ 指示に従って操縦', sys: [5, 10] });
-    else if (d.tcas === 'ta') add('TCAS_TA', 'advisory', 'TCAS TRAFFIC', { jp: 'TCAS 接近機の注意', detail: '周辺の機体が接近中 ・ 目視で確認', sys: [10] });
-    if (d.windshear) add('WINDSHEAR', 'warning', 'WINDSHEAR', { jp: 'ウィンドシア', detail: '風が急変 ・ 着陸復行（ゴーアラウンド）', sys: [10] });
-    if (d.datalink !== 'ok') { st.satcom = 'fail'; add('DATALINK', 'advisory', 'DATALINK LOST', { jp: 'データリンク 断', detail: '地上との通信が途切れています', sys: [9] }); }
+    if (v.xwind > L.xwind) add('XWIND', 'caution', `LDG XWIND ${r0(v.xwind)}KT`, { jp: SD.L(`着陸滑走路の横風 ${r0(v.xwind)}kt`, `Landing crosswind ${r0(v.xwind)} kt`), detail: SD.L(`制限 ${L.xwind}kt を超過 ・ 滑走路の変更を検討`, `Over the ${L.xwind} kt limit · consider another runway`), sys: [10] });
+    if (v.wx_level >= L.wxLevel && v.wx_dist < L.wxDist && Math.abs(v.wx_brg) < 45) add('WX_AHEAD', 'caution', `WX AHEAD ${r0(v.wx_dist)}KM`, { jp: SD.L(`前方 ${r0(v.wx_dist)}km に積乱雲`, `Storm cell ${r0(v.wx_dist)} km ahead`), detail: SD.L(`強度 ${v.wx_level}/3 ・ 相対方位 ${r0(v.wx_brg)}°`, `Intensity ${v.wx_level}/3 · bearing ${r0(v.wx_brg)}°`), sys: [10] });
+    if (v.cab_alt > L.cabAlt) add('CAB_PR', 'warning', 'CAB PR EXCESS CAB ALT', { jp: SD.L('客室高度 異常上昇', 'Cabin altitude excessive'), detail: SD.L(`客室高度 ${r0(v.cab_alt / 100) * 100} ft ・ 酸素マスク展開 ・ 降下が必要`, `Cabin altitude ${r0(v.cab_alt / 100) * 100} ft · masks deployed · descent required`), sys: [5] });
+    if (d.tcas === 'ra_climb' || d.tcas === 'ra_descend') add('TCAS_RA', 'warning', `TCAS RA ${d.tcas === 'ra_climb' ? 'CLIMB' : 'DESCEND'}`, { jp: SD.L(`TCAS 回避指示：${d.tcas === 'ra_climb' ? '上昇' : '降下'}`, `TCAS resolution: ${d.tcas === 'ra_climb' ? 'climb' : 'descend'}`), detail: SD.L('接近機あり ・ 指示に従って操縦', 'Traffic conflict · fly the advisory'), sys: [5, 10] });
+    else if (d.tcas === 'ta') add('TCAS_TA', 'advisory', 'TCAS TRAFFIC', { jp: SD.L('TCAS 接近機の注意', 'TCAS traffic advisory'), detail: SD.L('周辺の機体が接近中 ・ 目視で確認', 'Nearby traffic closing · look outside'), sys: [10] });
+    if (d.windshear) add('WINDSHEAR', 'warning', 'WINDSHEAR', { jp: SD.L('ウィンドシア', 'Windshear'), detail: SD.L('風が急変 ・ 着陸復行（ゴーアラウンド）', 'Sudden wind change · go around'), sys: [10] });
+    if (d.datalink !== 'ok') { st.satcom = 'fail'; add('DATALINK', 'advisory', 'DATALINK LOST', { jp: SD.L('データリンク 断', 'Datalink lost'), detail: SD.L('地上との通信が途切れています', 'Communication with the ground is lost'), sys: [9] }); }
     // scenario node overrides
     for (const [n, keys] of Object.entries(scn.nodes)) { const x = stepAt(keys, smp.t); if (x) st[n] = x; }
     // notes from the scenario replace the default texts

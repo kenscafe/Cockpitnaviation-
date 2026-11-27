@@ -43,5 +43,23 @@
     { "t": 34, "who": "ai", "chime": true, "text": "エンジン1の排気温度がエンジン2より高くなっています。推力を78パーセントに制限することを提案します。" },
     { "t": 48, "who": "capt", "text": "承認。" },
     { "t": 72, "who": "narr", "text": "検知はセンサー、提案はAI、決めるのは人。ひな形はここまでです。" }
-  ]
+  ],
+  "i18n": {
+    "en": {
+      "新しいシナリオ（ひな形）": "New scenario (template)",
+      "羽田": "Haneda",
+      "最小構成のひな形。巡航中にENG1のEGTが上がり、AIが推力制限を提案する。": "A minimal template. In cruise the ENG1 EGT rises and the AI proposes a thrust limit.",
+      "巡航": "Cruise",
+      "エンジン1の異常": "Engine 1 abnormality",
+      "まとめ": "Summary",
+      "ENG1 EGT上昇": "ENG1 EGT rise",
+      "ENG1 推力を78%に制限": "Limit ENG1 thrust to 78%",
+      "到着 +1分 ・ EGT は制限内に戻る見込み": "Arrival +1 min · EGT expected back within limits",
+      "根拠：EGT傾向 ／ エンジン性能モデル": "Basis: EGT trend / engine performance model",
+      "これはシナリオのひな形です。数値を書き換えると、表示がそのまま変わります。": "This is a scenario template. Change the numbers and the displays change with them.",
+      "エンジン1の排気温度がエンジン2より高くなっています。推力を78パーセントに制限することを提案します。": "Engine 1 exhaust temperature is higher than engine 2. I propose limiting its thrust to 78 percent.",
+      "承認。": "Approved.",
+      "検知はセンサー、提案はAI、決めるのは人。ひな形はここまでです。": "Detection by sensors, proposals by AI, decisions by people. That's the whole template."
+    }
+  }
 }

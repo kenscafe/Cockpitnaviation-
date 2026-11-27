@@ -4,7 +4,7 @@
   const NS = 'http://www.w3.org/2000/svg';
   const C = { fg: '#e9eef4', dim: '#8796a8', rule: '#223041', edge: '#2e3947', green: '#48dd8a', cyan: '#45cdea', amber: '#f3b23e', ink: '#03060a' };
   const $ = id => document.getElementById(id);
-  const el = (tag, attrs, parent, text) => { const n = document.createElementNS(NS, tag); for (const k in attrs) n.setAttribute(k, attrs[k]); if (text != null) n.textContent = text; if (parent) parent.appendChild(n); return n; };
+  const el = (tag, attrs, parent, text) => { const n = document.createElementNS(NS, tag); for (const k in attrs) n.setAttribute(k, attrs[k]); if (text != null) n.textContent = SD.t(text); if (parent) parent.appendChild(n); return n; };
   const clear = n => { while (n.firstChild) n.removeChild(n.firstChild); };
   const X0 = 140, X1 = 1460, BASE = 230, TOP = 70;
   const STEP_COL = [C.amber, C.cyan, C.fg, C.green];
@@ -52,7 +52,7 @@
     if (scn.planned) {
       $('plan').setAttribute('d', pathOf(interpPlan, scn.planned[0][0], scn.planned[scn.planned.length - 1][0]));
       const pk = scn.planned.reduce((a, b) => b[1] > a[1] ? b : a);
-      if (pk[1] !== cruise) el('text', Object.assign({ x: x(pk[0]) - 4, y: y(pk[1]) - 6, fill: C.dim, 'font-size': 10 }, F), grid, `当初計画 ${pk[1] >= 18000 ? 'FL' + pk[1] / 100 : pk[1] + 'ft'}`);
+      if (pk[1] !== cruise) el('text', Object.assign({ x: x(pk[0]) - 4, y: y(pk[1]) - 6, fill: C.dim, 'font-size': 10 }, F), grid, SD.L('当初計画 ', 'Planned ') + `${pk[1] >= 18000 ? 'FL' + pk[1] / 100 : pk[1] + 'ft'}`);
     } else $('plan').setAttribute('d', '');
     const prof = pathOf(altAt, 0, T);
     $('profDim').setAttribute('d', prof); $('profLit').setAttribute('d', prof);
@@ -75,7 +75,7 @@
       const dia = el('path', { d: `M${px} ${py - 9} l9 9 l-9 9 l-9 -9z`, fill: C.ink, stroke: C.amber, 'stroke-width': 1.8 }, g);
       el('text', Object.assign({ x: px, y: py + 4, 'text-anchor': 'middle', fill: C.amber, 'font-size': 10, 'font-weight': 700 }, F), g, inc.label);
       const box = el('rect', { x: bx - 96, y: by, width: 192, height: 44, rx: 6, fill: '#0b1016', stroke: C.edge }, g);
-      const title = el('text', Object.assign({ x: bx - 86, y: by + 18, fill: C.fg, 'font-size': 11, 'font-weight': 700 }, F), g, `${inc.label} ${inc.title}`.slice(0, 22));
+      const title = el('text', Object.assign({ x: bx - 86, y: by + 18, fill: C.fg, 'font-size': 11, 'font-weight': 700 }, F), g, `${inc.label} ${inc.title}`.slice(0, SD.L(22, 34)));
       const names = ['検知', '提案', inc.decision === 'reject' ? '却下' : '承認', '反映'];
       const pills = names.map((s, i) => {
         const r = el('rect', { x: bx - 86 + i * 44, y: by + 25, width: 40, height: 13, rx: 6.5, fill: 'none', stroke: C.edge }, g);
@@ -134,11 +134,11 @@
     if ($('sceneName').textContent !== sc.name) $('sceneName').textContent = sc.name;
     $('rPhase').textContent = sc.phase;
     const a = smp.d.authority, st = AUTH_STYLE[a] || AUTH_STYLE.manual;
-    $('rAuth').textContent = st[3]; $('rAuth').style.color = a === 'manual' ? 'var(--fg)' : 'var(--cyan)';
+    $('rAuth').textContent = SD.t(st[3]); $('rAuth').style.color = a === 'manual' ? 'var(--fg)' : 'var(--cyan)';
     $('rAlt').textContent = SD.fmtAlt(smp.v.alt);
     $('rSpd').textContent = `${Math.round(smp.v.gs)} kt`;
     const eta = +smp.d.eta || 0;
-    $('rEta').textContent = eta ? `${eta > 0 ? '+' : ''}${eta} 分` : '±0 分';
+    $('rEta').textContent = eta ? `${eta > 0 ? '+' : ''}${eta} ${SD.L('分', 'min')}` : SD.L('±0 分', '±0 min');
     $('rEta').style.color = eta ? 'var(--amber)' : 'var(--fg)';
     $('clock').firstChild.nodeValue = SD.fmt(t) + ' ';
     const ev = SD.lastAt(scn.events, t), w = WHO[ev.who] || WHO.sys;

@@ -103,4 +103,13 @@ th, td { border-bottom: 1px solid var(--rule); padding: 7px 10px; text-align: le
 &quot;aiIdle&quot;: { &quot;title&quot;: &quot;出発前の自己診断　完了&quot;, &quot;line&quot;: &quot;10機能 正常&quot;, &quot;src&quot;: &quot;待機中&quot; }</code></pre>
 <h2 id="うまく動かないとき">うまく動かないとき</h2>
 <ul><li>読み込み時に、足りない項目や形式の誤りを画面上部に日本語で表示します。</li><li>センサー名の書き間違いは「表示に使われないセンサー名です」と注意が出ます（読み込みは続きます）。</li><li>画面の「センサー値モニター」で、いまの値と出ている注意・警告を確かめられます。</li></ul>
+<h2 id="英語の対訳任意">英語の対訳（任意）</h2>
+<p>画面を English に切り替えたときの文言は、シナリオの最上位に <code>i18n.en</code> として「日本語 → 英語」の対訳を書きます。キーはシナリオ内の文字列とまったく同じにします（前後の空白は無視）。対訳が無い文言は日本語のまま表示されます。</p>
+<pre class="json"><code>&quot;i18n&quot;: {
+  &quot;en&quot;: {
+    &quot;SKY 900 羽田 → 福岡&quot;: &quot;SKY 900 Haneda → Fukuoka&quot;,
+    &quot;巡航&quot;: &quot;Cruise&quot;,
+    &quot;エンジン1の排気温度が上がっています。&quot;: &quot;Engine 1 exhaust temperature is rising.&quot;
+  }
+}</code></pre>
 </main></body></html>

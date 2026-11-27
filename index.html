@@ -66,6 +66,10 @@ button { font: 600 12px var(--f-mono); color: var(--fg); background: #1a222d; bo
 button:hover { border-color: var(--dim); }
 .helpLink { font: 600 12px var(--f-mono); color: var(--cyan); border: 1px solid var(--cyan); border-radius: 6px; padding: 6px 10px; text-decoration: none; white-space: nowrap; }
 .helpLink:hover { background: #0e2a33; }
+.langSw { display: inline-flex; border: 1px solid var(--cyan); border-radius: 6px; overflow: hidden; }
+.langSw button { font: 600 12px var(--f-mono); color: var(--cyan); background: none; border: 0; padding: 6px 10px; cursor: pointer; white-space: nowrap; }
+.langSw button[aria-pressed="true"] { background: var(--cyan); color: #03060a; }
+.langSw button:focus-visible { outline: 2px solid var(--fg); outline-offset: -2px; }
 button:focus-visible, input:focus-visible { outline: 2px solid var(--cyan); outline-offset: 2px; }
 button[aria-pressed="true"] { color: var(--cyan); border-color: var(--cyan); background: #0e2a33; }
 #play { min-width: 74px; }
@@ -165,8 +169,9 @@ body { padding-block: 20px 40px; }
       <button id="scnOpen" type="button">ファイルを開く…</button>
       <input id="scnFile" type="file" accept=".json,application/json" hidden>
       <button id="scnSave" type="button" title="いま再生中のシナリオをJSONファイルとして保存">JSONで保存</button>
-      <a class="helpLink" href="story/index.html" target="_blank" rel="noopener" title="このデモができるまでを約3分で紹介（別タブで開きます）">紹介アニメ ▶</a>
+      <a class="helpLink" id="storyLink" href="story/index.html" target="_blank" rel="noopener" title="デモ画面の見方を約2分の動画で紹介（別タブで開きます）">説明動画 ▶</a>
       <a class="helpLink" href="readme.html" target="_blank" rel="noopener" title="使い方・シナリオの書き方・更新と公開（別タブで開きます）">使い方 ?</a>
+      <span class="langSw" role="group" aria-label="Language / 言語"><button type="button" data-lang="ja" aria-pressed="true">日本語</button><button type="button" data-lang="en" aria-pressed="false">English</button></span>
     </div>
     <div class="legend">
       <span><i style="background:var(--green)"></i>正常</span>
@@ -869,6 +874,7 @@ body { padding-block: 20px 40px; }
 </div>
 <div class="drop" id="drop">シナリオのJSONファイルをここにドロップ</div>
 <div class="msg" id="msg" role="alert"></div>
+<script src="js/i18n.js"></script>
 <script src="js/core.js"></script>
 <script src="scenarios/builtin.js"></script>
 <script src="js/dashboard.js"></script>
