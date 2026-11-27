@@ -1,0 +1,56 @@
+name: 検証して GitHub Pages に公開
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: シナリオ JSON を検証
+        run: node tools/validate.mjs
+      - name: 同梱シナリオ (builtin.js) を作り直す
+        run: python3 tools/bundle.py
+      - name: 公開用ファイルをまとめる
+        run: |
+          mkdir -p _site
+          cp -r index.html js scenarios assets docs README.md _site/
+          touch _site/.nojekyll
+      - name: 配布用 zip を作る
+        run: |
+          mkdir -p _zip/cockpit-demo
+          cp -r index.html js scenarios assets docs tools README.md _zip/cockpit-demo/
+          (cd _zip && zip -qr ../_site/cockpit-demo-platform.zip cockpit-demo)
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: _site
+
+  deploy:
+    if: github.event_name != 'pull_request'
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4

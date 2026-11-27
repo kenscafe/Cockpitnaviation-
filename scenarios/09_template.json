@@ -1,0 +1,47 @@
+{
+  "format": "cockpit-demo-scenario/1",
+  "meta": {
+    "id": "my-scenario",
+    "title": "新しいシナリオ（ひな形）",
+    "flight": "SKY 100",
+    "from": { "code": "RJTT", "name": "羽田", "runway": "34R" },
+    "to": { "code": "RJTT", "name": "羽田", "runway": "34R" },
+    "duration": 90,
+    "description": "最小構成のひな形。巡航中にENG1のEGTが上がり、AIが推力制限を提案する。"
+  },
+  "scenes": [
+    { "t": 0, "name": "巡航", "phase": "巡航" },
+    { "t": 30, "name": "エンジン1の異常", "phase": "巡航", "focus": { "panels": ["dash", "air"], "cards": [2, 3] } },
+    { "t": 70, "name": "まとめ", "phase": "巡航" }
+  ],
+  "sensors": {
+    "alt": 35000,
+    "ias": 280,
+    "hdg": 90,
+    "n1_1": [[0, 84], [52, 84], [55, 78], [90, 78]],
+    "n1_2": 84,
+    "egt_2": 690,
+    "egt_1": [[0, 692], [30, 692], [36, 730], [52, 735], [58, 680], [90, 680]]
+  },
+  "states": { "authority": [[0, "assist"]], "fcu_alt": 35000, "fcu_spd": 280, "thrust_limit_1": [[0, null], [55, 78]] },
+  "incidents": [
+    {
+      "title": "ENG1 EGT上昇",
+      "steps": { "detect": 33, "propose": 36, "decide": 48, "apply": 52 },
+      "systems": [2],
+      "proposal": {
+        "title": "ENG1 推力を78%に制限",
+        "line": "到着 +1分 ・ EGT は制限内に戻る見込み",
+        "src": "根拠：EGT傾向 ／ エンジン性能モデル",
+        "conf": 0.9,
+        "memo": "ENG1 LIM"
+      }
+    }
+  ],
+  "dialogue": [
+    { "t": 0, "who": "narr", "text": "これはシナリオのひな形です。数値を書き換えると、表示がそのまま変わります。" },
+    { "t": 34, "who": "ai", "chime": true, "text": "エンジン1の排気温度がエンジン2より高くなっています。推力を78パーセントに制限することを提案します。" },
+    { "t": 48, "who": "capt", "text": "承認。" },
+    { "t": 72, "who": "narr", "text": "検知はセンサー、提案はAI、決めるのは人。ひな形はここまでです。" }
+  ]
+}
