@@ -24,10 +24,10 @@ th, td { border-bottom: 1px solid var(--rule); padding: 7px 10px; text-align: le
 <h1 id="コックピット-デモプラットフォーム">コックピット デモプラットフォーム</h1>
 <p><a href="https://github.com/kenscafe/Cockpitnaviation-/actions/workflows/pages.yml"><img alt="検証して GitHub Pages に公開" src="https://github.com/kenscafe/Cockpitnaviation-/actions/workflows/pages.yml/badge.svg"></a></p>
 <p>ソフトウェア制御の旅客機を題材に、コックピットのダッシュボードと、エンジン・飛行制御などの分散システム、AI、パイロットの連携を見せるデモです。<br><strong>シナリオ（JSONファイル）を読み込んで再生</strong>します。ダッシュボードの表示は、シナリオに書いたセンサー値から毎フレーム計算されます。</p>
-<p><strong>▶ デモを開く：<a href="https://kenscafe.github.io/Cockpitnaviation-/">https://kenscafe.github.io/Cockpitnaviation-/</a></strong><br>（オフライン用の zip：<a href="https://kenscafe.github.io/Cockpitnaviation-/cockpit-demo-platform.zip">https://kenscafe.github.io/Cockpitnaviation-/cockpit-demo-platform.zip</a> ）<br><strong>▶ 紹介アニメーション（約3分・日英字幕）：<a href="https://kenscafe.github.io/Cockpitnaviation-/story/">https://kenscafe.github.io/Cockpitnaviation-/story/</a></strong></p>
-<h2 id="紹介アニメーション">紹介アニメーション</h2>
-<p><code>story/index.html</code> は、UseCase案から Claude Code で動くモックアップができ、自動で公開されるまでを約3分（8シーン）で紹介するページです。デモ画面右上の「紹介アニメ ▶」から別タブで開きます。日本語 / English を切り替えられ、字幕は日英併記です。最後の「ライブデモを開始する」からデモ画面に移れます。</p>
-<ul><li>本体：<code>story/index.html</code>（外部への通信なしの静的ページ。オフラインの zip でも開けます）</li><li>画像：<code>story/img/</code>（デモ画面の写真。画面を変えたら撮り直してください）</li></ul>
+<p><strong>▶ デモを開く：<a href="https://kenscafe.github.io/Cockpitnaviation-/">https://kenscafe.github.io/Cockpitnaviation-/</a></strong><br>（オフライン用の zip：<a href="https://kenscafe.github.io/Cockpitnaviation-/cockpit-demo-platform.zip">https://kenscafe.github.io/Cockpitnaviation-/cockpit-demo-platform.zip</a> ）<br><strong>▶ 説明動画（約2分・日本語ナレーション・日英字幕）：<a href="https://kenscafe.github.io/Cockpitnaviation-/story/">https://kenscafe.github.io/Cockpitnaviation-/story/</a></strong></p>
+<h2 id="説明動画">説明動画</h2>
+<p><code>story/index.html</code> は、デモ画面の見方を約2分で案内する動画のページです。デモ画面右上の「説明動画 ▶」から別タブで開きます。ナレーションは日本語、字幕は日本語と英語の併記で、章ボタンから各場面に飛べます。最後の「ライブデモを開始する」からデモ画面に移れます。</p>
+<ul><li>動画：<code>story/tour.mp4</code>（ポスター画像 <code>story/img/tour-poster.jpg</code>、章の一覧 <code>story/tour-chapters.js</code>）</li><li>作り方：<code>python3 tools/tour/make.py</code>。台本 <code>tools/tour/tour.json</code> のナレーションを Open JTalk で合成し、Playwright でデモ画面を台本どおりに操作して録画し、ffmpeg で合わせます。画面や台本を変えたら作り直してください（声のファイルの用意は <code>tools/voice_render.py</code> と同じ）</li></ul>
 <h2 id="起動方法">起動方法</h2>
 <h3 id="web-で見る">Web で見る</h3>
 <ol><li>上の「デモを開く」のURLをブラウザで開きます。</li><li>画面右上の「SCENARIO」からシナリオを選びます。最初は「SKY 501 羽田 → 新千歳」が流れます。</li><li>本番では、字幕帯の右にある「音声 オン」を押してください。1倍速に切り替わり、セリフが読み上げられます。声は最初「収録音声（同梱）」で、どのパソコンでも同じ声が流れます。「ブラウザ音声」に切り替えると、そのパソコンに入っている日本語の声のうち品質の良いものを話者ごとに選んで読み上げます。</li></ol>
@@ -36,7 +36,7 @@ th, td { border-bottom: 1px solid var(--rule); padding: 7px 10px; text-align: le
 <ol><li>上の zip をダウンロードして展開します（またはこのリポジトリを clone します）。</li><li><code>index.html</code> をブラウザで開きます（ダブルクリック、またはブラウザにドラッグ）。</li><li>あとは Web で見るときと同じです。</li></ol>
 <p>推奨ブラウザは Google Chrome または Microsoft Edge の最新版です。</p>
 <h2 id="日本語-/-english">日本語 / English</h2>
-<p>画面右上の「日本語 / English」で表示の言語を切り替えます。再生位置はそのままです。選んだ言語はブラウザに記憶され、紹介アニメーションとも共通です（URL に <code>?lang=en</code> を付けても英語で開きます）。</p>
+<p>画面右上の「日本語 / English」で表示の言語を切り替えます。再生位置はそのままです。選んだ言語はブラウザに記憶され、説明動画のページとも共通です（URL に <code>?lang=en</code> を付けても英語で開きます）。</p>
 <ul><li>英語では、画面の文言・警告・AI の提案・字幕がすべて英語になります。音声はブラウザ（または Claude）の英語の声で読み上げます（収録音声は日本語のみ）</li><li>シナリオの英訳は、各 JSON の末尾の <code>&quot;i18n&quot;: { &quot;en&quot;: { &quot;日本語&quot;: &quot;English&quot;, … } }</code> に書きます。対訳が無い文言は日本語のまま表示されます</li><li>画面の固定の文言は <code>js/i18n.js</code> の辞書にあります</li></ul>
 <div class="tbl"><table><thead><tr><th>シナリオ</th><th>長さ</th><th>内容</th></tr></thead><tbody><tr><td>SKY 501 羽田 → 新千歳</td><td>5:00</td><td>元のデモをシナリオ形式に移したもの。滑走路変更、ENG2 の EGT 上昇と FCC-2 の自動切り離し、積乱雲の回避、横風による滑走路変更</td></tr><tr><td>SKY 214 関西 → 那覇</td><td>4:30</td><td>新しいサンプル。油圧2系統の喪失、燃料の左右不均衡、台風の外縁でのダイバート案を<strong>機長が却下</strong>、降下中の発電機1の故障と APU 始動</td></tr><tr><td>SKY 330 伊丹 → 羽田（関西へ着陸）</td><td>3:30</td><td>離陸直後のバードストライクで ENG1 が停止。片発で関西へ向かい、過重量着陸を判断し、片発で進入する</td></tr><tr><td>SKY 812 新千歳 → 福岡（仙台へダイバート）</td><td>3:30</td><td>巡航中に客室の与圧が抜けて緊急降下。仙台へダイバートし、降下中に TCAS の回避指示（上昇）を受ける</td></tr><tr><td>SKY 605 福岡 → 羽田（ウィンドシアで着陸復行）</td><td>3:40</td><td>降下中の積乱雲を回避。最終進入でウィンドシアに遭い着陸復行、横風の弱い滑走路22へ再進入。代替空港へ向かう燃料の判断点を決める</td></tr><tr><td>新しいシナリオ（ひな形）</td><td>1:30</td><td>自作用の最小構成。巡航中に ENG1 の EGT が上がり、AI が推力制限を提案する</td></tr></tbody></table></div>
 <h2 id="シナリオを読み込む">シナリオを読み込む</h2>
@@ -61,13 +61,13 @@ th, td { border-bottom: 1px solid var(--rule); padding: 7px 10px; text-align: le
 <p>スクリプトは 検証 → builtin.js の作り直し → commit → push を一度に行います（Node.js・Python 3・Git が必要）。プルリクエストでは検証だけ行い、公開はしません。詳しくは <a href="docs/publishing.html">docs/PUBLISHING.md</a>。</p>
 <h2 id="vercel-で公開する">Vercel で公開する</h2>
 <p>GitHub Pages と同じ内容を Vercel でも公開できます（ビルドなしの静的サイト。設定は <code>vercel.json</code>）。</p>
-<ol><li>Vercel の「Add New → Project」でこのリポジトリをインポート</li><li>Framework Preset は「Other」のまま。Build Command・環境変数は不要（ビルドなしで、リポジトリのルートがそのまま公開されます）</li><li>Deploy を押すと <code>https://&lt;プロジェクト名&gt;.vercel.app/</code> で開けます。紹介アニメーションは <code>/story</code></li><li>以後は <code>main</code> への push で自動的に本番が更新され、プルリクエストごとに Preview URL も作られます</li></ol>
+<ol><li>Vercel の「Add New → Project」でこのリポジトリをインポート</li><li>Framework Preset は「Other」のまま。Build Command・環境変数は不要（ビルドなしで、リポジトリのルートがそのまま公開されます）</li><li>Deploy を押すと <code>https://&lt;プロジェクト名&gt;.vercel.app/</code> で開けます。説明動画は <code>/story</code></li><li>以後は <code>main</code> への push で自動的に本番が更新され、プルリクエストごとに Preview URL も作られます</li></ol>
 <p><code>scenarios/builtin.js</code> と <code>readme.html</code> はコミット済みのものをそのまま配信します。シナリオを変えたら <code>publish.sh</code>（または <code>python3 tools/bundle.py</code> と <code>python3 tools/build_docs.py</code>）で作り直してからコミットしてください。</p>
 <h2 id="ファイル構成">ファイル構成</h2>
 <pre class=""><code>.
 ├── index.html              画面（ダッシュボード・配置図・字幕・進行カード）
 ├── readme.html             画面右上「使い方 ?」で開くページ（README.md から tools/build_docs.py で生成）
-├── story/                  画面右上「紹介アニメ ▶」で開く約3分の紹介ページ（index.html と画面写真 img/）
+├── story/                  画面右上「説明動画 ▶」で開く説明動画のページ（tour.mp4 は tools/tour/make.py で生成）
 ├── js/
 │   ├── core.js             シナリオの読み込みと検証、センサー値の補間、健全性と警告の判定
 │   ├── dashboard.js        ダッシュボードと配置図の描画（センサー値と判定結果から描く）

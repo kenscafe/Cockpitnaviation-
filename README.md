@@ -7,14 +7,14 @@
 
 **▶ デモを開く：https://kenscafe.github.io/Cockpitnaviation-/**
 （オフライン用の zip：https://kenscafe.github.io/Cockpitnaviation-/cockpit-demo-platform.zip ）
-**▶ 紹介アニメーション（約3分・日英字幕）：https://kenscafe.github.io/Cockpitnaviation-/story/**
+**▶ 説明動画（約2分・日本語ナレーション・日英字幕）：https://kenscafe.github.io/Cockpitnaviation-/story/**
 
-## 紹介アニメーション
+## 説明動画
 
-`story/index.html` は、UseCase案から Claude Code で動くモックアップができ、自動で公開されるまでを約3分（8シーン）で紹介するページです。デモ画面右上の「紹介アニメ ▶」から別タブで開きます。日本語 / English を切り替えられ、字幕は日英併記です。最後の「ライブデモを開始する」からデモ画面に移れます。
+`story/index.html` は、デモ画面の見方を約2分で案内する動画のページです。デモ画面右上の「説明動画 ▶」から別タブで開きます。ナレーションは日本語、字幕は日本語と英語の併記で、章ボタンから各場面に飛べます。最後の「ライブデモを開始する」からデモ画面に移れます。
 
-- 本体：`story/index.html`（外部への通信なしの静的ページ。オフラインの zip でも開けます）
-- 画像：`story/img/`（デモ画面の写真。画面を変えたら撮り直してください）
+- 動画：`story/tour.mp4`（ポスター画像 `story/img/tour-poster.jpg`、章の一覧 `story/tour-chapters.js`）
+- 作り方：`python3 tools/tour/make.py`。台本 `tools/tour/tour.json` のナレーションを Open JTalk で合成し、Playwright でデモ画面を台本どおりに操作して録画し、ffmpeg で合わせます。画面や台本を変えたら作り直してください（声のファイルの用意は `tools/voice_render.py` と同じ）
 
 ## 起動方法
 
@@ -36,7 +36,7 @@
 
 ## 日本語 / English
 
-画面右上の「日本語 / English」で表示の言語を切り替えます。再生位置はそのままです。選んだ言語はブラウザに記憶され、紹介アニメーションとも共通です（URL に `?lang=en` を付けても英語で開きます）。
+画面右上の「日本語 / English」で表示の言語を切り替えます。再生位置はそのままです。選んだ言語はブラウザに記憶され、説明動画のページとも共通です（URL に `?lang=en` を付けても英語で開きます）。
 
 - 英語では、画面の文言・警告・AI の提案・字幕がすべて英語になります。音声はブラウザ（または Claude）の英語の声で読み上げます（収録音声は日本語のみ）
 - シナリオの英訳は、各 JSON の末尾の `"i18n": { "en": { "日本語": "English", … } }` に書きます。対訳が無い文言は日本語のまま表示されます
@@ -125,7 +125,7 @@ GitHub Pages と同じ内容を Vercel でも公開できます（ビルドな�
 
 1. Vercel の「Add New → Project」でこのリポジトリをインポート
 2. Framework Preset は「Other」のまま。Build Command・環境変数は不要（ビルドなしで、リポジトリのルートがそのまま公開されます）
-3. Deploy を押すと `https://<プロジェクト名>.vercel.app/` で開けます。紹介アニメーションは `/story`
+3. Deploy を押すと `https://<プロジェクト名>.vercel.app/` で開けます。説明動画は `/story`
 4. 以後は `main` への push で自動的に本番が更新され、プルリクエストごとに Preview URL も作られます
 
 `scenarios/builtin.js` と `readme.html` はコミット済みのものをそのまま配信します。シナリオを変えたら `publish.sh`（または `python3 tools/bundle.py` と `python3 tools/build_docs.py`）で作り直してからコミットしてください。
@@ -136,7 +136,7 @@ GitHub Pages と同じ内容を Vercel でも公開できます（ビルドな�
 .
 ├── index.html              画面（ダッシュボード・配置図・字幕・進行カード）
 ├── readme.html             画面右上「使い方 ?」で開くページ（README.md から tools/build_docs.py で生成）
-├── story/                  画面右上「紹介アニメ ▶」で開く約3分の紹介ページ（index.html と画面写真 img/）
+├── story/                  画面右上「説明動画 ▶」で開く説明動画のページ（tour.mp4 は tools/tour/make.py で生成）
 ├── js/
 │   ├── core.js             シナリオの読み込みと検証、センサー値の補間、健全性と警告の判定
 │   ├── dashboard.js        ダッシュボードと配置図の描画（センサー値と判定結果から描く）
