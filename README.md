@@ -1,16 +1,28 @@
 # コックピット デモプラットフォーム
 
+[![検証して GitHub Pages に公開](https://github.com/kenscafe/Cockpitnaviation-/actions/workflows/pages.yml/badge.svg)](https://github.com/kenscafe/Cockpitnaviation-/actions/workflows/pages.yml)
+
 ソフトウェア制御の旅客機を題材に、コックピットのダッシュボードと、エンジン・飛行制御などの分散システム、AI、パイロットの連携を見せるデモです。
 **シナリオ（JSONファイル）を読み込んで再生**します。ダッシュボードの表示は、シナリオに書いたセンサー値から毎フレーム計算されます。
 
-インターネット接続も、インストールも、サーバーも要りません。
+**▶ デモを開く：https://kenscafe.github.io/Cockpitnaviation-/**
+（オフライン用の zip：https://kenscafe.github.io/Cockpitnaviation-/cockpit-demo-platform.zip ）
 
 ## 起動方法
 
-1. zip を展開します。
-2. `cockpit-demo` フォルダの `index.html` をブラウザで開きます（ダブルクリック、またはブラウザにドラッグ）。
-3. 画面右上の「SCENARIO」からシナリオを選びます。最初は「SKY 501 羽田 → 新千歳」が流れます。
-4. 本番では、字幕帯の右にある「音声 オン」を押してください。1倍速に切り替わり、セリフが読み上げられます。
+### Web で見る
+
+1. 上の「デモを開く」のURLをブラウザで開きます。
+2. 画面右上の「SCENARIO」からシナリオを選びます。最初は「SKY 501 羽田 → 新千歳」が流れます。
+3. 本番では、字幕帯の右にある「音声 オン」を押してください。1倍速に切り替わり、セリフが読み上げられます。
+
+### オフラインで見る
+
+インターネット接続も、インストールも、サーバーも要りません。
+
+1. 上の zip をダウンロードして展開します（またはこのリポジトリを clone します）。
+2. `index.html` をブラウザで開きます（ダブルクリック、またはブラウザにドラッグ）。
+3. あとは Web で見るときと同じです。
 
 推奨ブラウザは Google Chrome または Microsoft Edge の最新版です。
 
@@ -71,18 +83,30 @@
 
 ## 自分のシナリオを作る
 
-書き方は `docs/SCENARIO_FORMAT.md` にまとめています。いちばん簡単なのは `scenarios/09_template.json` をコピーして書き換え、画面にドロップする方法です。
+書き方は [docs/SCENARIO_FORMAT.md](docs/SCENARIO_FORMAT.md) にまとめています。いちばん簡単なのは `scenarios/09_template.json` をコピーして書き換え、画面にドロップする方法です。
 
 作ったシナリオを「同梱シナリオ」に加えたいときは、`scenarios/` に JSON を置いて `python3 tools/bundle.py` を実行してください。`scenarios/builtin.js` が作り直されます（ブラウザは `file://` から JSON を直接読めないため、同梱分だけこの JS にまとめています）。
 
-## GitHub で公開する
+## 更新と公開（自動）
 
-`main` に push すると自動で検証して GitHub Pages に公開します。手元からは `./publish.sh "メッセージ"`（Windows は `publish.ps1`）で push できます。詳しくは `docs/PUBLISHING.md`。
+`main` ブランチに push すると、GitHub Actions が次を自動で行い、1〜2分で上のURLが更新されます。
+
+1. `scenarios/*.json` をすべて検証（誤りがあれば公開を止め、ログにどこが違うかを日本語で出す）
+2. `scenarios/builtin.js` を作り直す
+3. GitHub Pages に公開し、配布用 zip も置く
+
+| やり方 | 手順 |
+| --- | --- |
+| 手元から（Mac / Linux） | `./publish.sh "SKY 900 のシナリオを追加"` |
+| 手元から（Windows） | `powershell -ExecutionPolicy Bypass -File publish.ps1 "SKY 900 のシナリオを追加"` |
+| GitHub の画面から | `scenarios/` で JSON をアップロード、または直接編集してコミット |
+
+スクリプトは 検証 → builtin.js の作り直し → commit → push を一度に行います（Node.js・Python 3・Git が必要）。プルリクエストでは検証だけ行い、公開はしません。詳しくは [docs/PUBLISHING.md](docs/PUBLISHING.md)。
 
 ## ファイル構成
 
 ```
-cockpit-demo/
+.
 ├── index.html              画面（ダッシュボード・配置図・字幕・進行カード）
 ├── js/
 │   ├── core.js             シナリオの読み込みと検証、センサー値の補間、健全性と警告の判定
