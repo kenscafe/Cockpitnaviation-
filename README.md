@@ -7,6 +7,14 @@
 
 **▶ デモを開く：https://kenscafe.github.io/Cockpitnaviation-/**
 （オフライン用の zip：https://kenscafe.github.io/Cockpitnaviation-/cockpit-demo-platform.zip ）
+**▶ 紹介アニメーション（約3分・日英字幕）：https://kenscafe.github.io/Cockpitnaviation-/story/**
+
+## 紹介アニメーション
+
+`story/index.html` は、UseCase案から Claude Code で動くモックアップができ、自動で公開されるまでを約3分（8シーン）で紹介するページです。デモ画面右上の「紹介アニメ ▶」から別タブで開きます。日本語 / English を切り替えられ、字幕は日英併記です。最後の「ライブデモを開始する」からデモ画面に移れます。
+
+- 本体：`story/index.html`（外部への通信なしの静的ページ。オフラインの zip でも開けます）
+- 画像：`story/img/`（デモ画面の写真。画面を変えたら撮り直してください）
 
 ## 起動方法
 
@@ -103,12 +111,24 @@
 
 スクリプトは 検証 → builtin.js の作り直し → commit → push を一度に行います（Node.js・Python 3・Git が必要）。プルリクエストでは検証だけ行い、公開はしません。詳しくは [docs/PUBLISHING.md](docs/PUBLISHING.md)。
 
+## Vercel で公開する
+
+GitHub Pages と同じ内容を Vercel でも公開できます（ビルドなしの静的サイト。設定は `vercel.json`）。
+
+1. Vercel の「Add New → Project」でこのリポジトリをインポート
+2. Framework Preset は「Other」のまま。Build Command・環境変数は不要（`vercel.json` が「ビルドなし・ルートをそのまま公開」を指定）
+3. Deploy を押すと `https://<プロジェクト名>.vercel.app/` で開けます。紹介アニメーションは `/story`
+4. 以後は `main` への push で自動的に本番が更新され、プルリクエストごとに Preview URL も作られます
+
+`scenarios/builtin.js` と `readme.html` はコミット済みのものをそのまま配信します。シナリオを変えたら `publish.sh`（または `python3 tools/bundle.py` と `python3 tools/build_docs.py`）で作り直してからコミットしてください。
+
 ## ファイル構成
 
 ```
 .
 ├── index.html              画面（ダッシュボード・配置図・字幕・進行カード）
 ├── readme.html             画面右上「使い方 ?」で開くページ（README.md から tools/build_docs.py で生成）
+├── story/                  画面右上「紹介アニメ ▶」で開く約3分の紹介ページ（index.html と画面写真 img/）
 ├── js/
 │   ├── core.js             シナリオの読み込みと検証、センサー値の補間、健全性と警告の判定
 │   ├── dashboard.js        ダッシュボードと配置図の描画（センサー値と判定結果から描く）

@@ -24,7 +24,10 @@ th, td { border-bottom: 1px solid var(--rule); padding: 7px 10px; text-align: le
 <h1 id="コックピット-デモプラットフォーム">コックピット デモプラットフォーム</h1>
 <p><a href="https://github.com/kenscafe/Cockpitnaviation-/actions/workflows/pages.yml"><img alt="検証して GitHub Pages に公開" src="https://github.com/kenscafe/Cockpitnaviation-/actions/workflows/pages.yml/badge.svg"></a></p>
 <p>ソフトウェア制御の旅客機を題材に、コックピットのダッシュボードと、エンジン・飛行制御などの分散システム、AI、パイロットの連携を見せるデモです。<br><strong>シナリオ（JSONファイル）を読み込んで再生</strong>します。ダッシュボードの表示は、シナリオに書いたセンサー値から毎フレーム計算されます。</p>
-<p><strong>▶ デモを開く：<a href="https://kenscafe.github.io/Cockpitnaviation-/">https://kenscafe.github.io/Cockpitnaviation-/</a></strong><br>（オフライン用の zip：<a href="https://kenscafe.github.io/Cockpitnaviation-/cockpit-demo-platform.zip">https://kenscafe.github.io/Cockpitnaviation-/cockpit-demo-platform.zip</a> ）</p>
+<p><strong>▶ デモを開く：<a href="https://kenscafe.github.io/Cockpitnaviation-/">https://kenscafe.github.io/Cockpitnaviation-/</a></strong><br>（オフライン用の zip：<a href="https://kenscafe.github.io/Cockpitnaviation-/cockpit-demo-platform.zip">https://kenscafe.github.io/Cockpitnaviation-/cockpit-demo-platform.zip</a> ）<br><strong>▶ 紹介アニメーション（約3分・日英字幕）：<a href="https://kenscafe.github.io/Cockpitnaviation-/story/">https://kenscafe.github.io/Cockpitnaviation-/story/</a></strong></p>
+<h2 id="紹介アニメーション">紹介アニメーション</h2>
+<p><code>story/index.html</code> は、UseCase案から Claude Code で動くモックアップができ、自動で公開されるまでを約3分（8シーン）で紹介するページです。デモ画面右上の「紹介アニメ ▶」から別タブで開きます。日本語 / English を切り替えられ、字幕は日英併記です。最後の「ライブデモを開始する」からデモ画面に移れます。</p>
+<ul><li>本体：<code>story/index.html</code>（外部への通信なしの静的ページ。オフラインの zip でも開けます）</li><li>画像：<code>story/img/</code>（デモ画面の写真。画面を変えたら撮り直してください）</li></ul>
 <h2 id="起動方法">起動方法</h2>
 <h3 id="web-で見る">Web で見る</h3>
 <ol><li>上の「デモを開く」のURLをブラウザで開きます。</li><li>画面右上の「SCENARIO」からシナリオを選びます。最初は「SKY 501 羽田 → 新千歳」が流れます。</li><li>本番では、字幕帯の右にある「音声 オン」を押してください。1倍速に切り替わり、セリフが読み上げられます。声は最初「収録音声（同梱）」で、どのパソコンでも同じ声が流れます。「ブラウザ音声」に切り替えると、そのパソコンに入っている日本語の声のうち品質の良いものを話者ごとに選んで読み上げます。</li></ol>
@@ -54,10 +57,15 @@ th, td { border-bottom: 1px solid var(--rule); padding: 7px 10px; text-align: le
 <ol><li><code>scenarios/*.json</code> をすべて検証（誤りがあれば公開を止め、ログにどこが違うかを日本語で出す）</li><li><code>scenarios/builtin.js</code> と、画面の「使い方 ?」で開くページ（<code>readme.html</code>）を作り直す</li><li>GitHub Pages に公開し、配布用 zip も置く</li></ol>
 <div class="tbl"><table><thead><tr><th>やり方</th><th>手順</th></tr></thead><tbody><tr><td>手元から（Mac / Linux）</td><td><code>./publish.sh &quot;SKY 900 のシナリオを追加&quot;</code></td></tr><tr><td>手元から（Windows）</td><td><code>powershell -ExecutionPolicy Bypass -File publish.ps1 &quot;SKY 900 のシナリオを追加&quot;</code></td></tr><tr><td>GitHub の画面から</td><td><code>scenarios/</code> で JSON をアップロード、または直接編集してコミット</td></tr></tbody></table></div>
 <p>スクリプトは 検証 → builtin.js の作り直し → commit → push を一度に行います（Node.js・Python 3・Git が必要）。プルリクエストでは検証だけ行い、公開はしません。詳しくは <a href="docs/publishing.html">docs/PUBLISHING.md</a>。</p>
+<h2 id="vercel-で公開する">Vercel で公開する</h2>
+<p>GitHub Pages と同じ内容を Vercel でも公開できます（ビルドなしの静的サイト。設定は <code>vercel.json</code>）。</p>
+<ol><li>Vercel の「Add New → Project」でこのリポジトリをインポート</li><li>Framework Preset は「Other」のまま。Build Command・環境変数は不要（<code>vercel.json</code> が「ビルドなし・ルートをそのまま公開」を指定）</li><li>Deploy を押すと <code>https://&lt;プロジェクト名&gt;.vercel.app/</code> で開けます。紹介アニメーションは <code>/story</code></li><li>以後は <code>main</code> への push で自動的に本番が更新され、プルリクエストごとに Preview URL も作られます</li></ol>
+<p><code>scenarios/builtin.js</code> と <code>readme.html</code> はコミット済みのものをそのまま配信します。シナリオを変えたら <code>publish.sh</code>（または <code>python3 tools/bundle.py</code> と <code>python3 tools/build_docs.py</code>）で作り直してからコミットしてください。</p>
 <h2 id="ファイル構成">ファイル構成</h2>
 <pre class=""><code>.
 ├── index.html              画面（ダッシュボード・配置図・字幕・進行カード）
 ├── readme.html             画面右上「使い方 ?」で開くページ（README.md から tools/build_docs.py で生成）
+├── story/                  画面右上「紹介アニメ ▶」で開く約3分の紹介ページ（index.html と画面写真 img/）
 ├── js/
 │   ├── core.js             シナリオの読み込みと検証、センサー値の補間、健全性と警告の判定
 │   ├── dashboard.js        ダッシュボードと配置図の描画（センサー値と判定結果から描く）

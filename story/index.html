@@ -1,0 +1,537 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>紹介アニメーション / Story｜コックピット デモ</title>
+<meta name="description" content="コックピット デモが、UseCase案からClaude Codeで動くモックアップと自動公開まで進んだ流れを約3分で紹介します（日本語 / English）">
+<link rel="stylesheet" href="../assets/fonts/fonts.css">
+<style>
+*,*::before,*::after{box-sizing:border-box}
+[hidden]{display:none!important}
+html{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+body{margin:0}
+img{max-width:100%}
+/* Layout: one cinema stage (fixed 1280x720, scaled) + bilingual subtitle bar + chapter list. Stage is a deliberate dark "control room" look; the page around it follows the viewer theme. */
+:root{
+  --bg:#f3f6f9; --surface:#ffffff; --fg:#13202e; --muted:#5a6b7c; --line:#d5dee7; --accent:#0a7ea8;
+  --stage:#07131f; --stage-2:#0d2133; --stage-line:#1d3a52; --cyan:#45cdea; --amber:#f3b23e; --red:#f0524f; --green:#48dd8a; --magenta:#e061d2; --ink:#e6f1fa; --ink-2:#8fa9bf;
+  --f-body:"Hiragino Sans","Hiragino Kaku Gothic ProN","Noto Sans JP","Yu Gothic",system-ui,sans-serif;
+  --f-disp:"Chakra Petch","Avenir Next","Segoe UI","Hiragino Sans","Noto Sans JP",system-ui,sans-serif;
+  --f-mono:"JetBrains Mono",ui-monospace,"SF Mono",Menlo,monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){--bg:#0b1219;--surface:#111c26;--fg:#e3ecf4;--muted:#93a6b8;--line:#22323f;--accent:#4cc3e6;color-scheme:dark}}
+:root[data-theme="dark"]{--bg:#0b1219;--surface:#111c26;--fg:#e3ecf4;--muted:#93a6b8;--line:#22323f;--accent:#4cc3e6;color-scheme:dark}
+body{background:var(--bg);color:var(--fg);font-family:var(--f-body);line-height:1.6}
+.wrap{max-width:1120px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:20px 48px;display:grid;gap:18px}
+header.top{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:12px}
+.eyebrow{font:600 12px/1 var(--f-disp);letter-spacing:.12em;text-transform:uppercase;color:var(--accent)}
+h1{font:700 clamp(22px,3.2vw,32px)/1.25 var(--f-body);margin:6px 0 0;text-wrap:balance}
+.lead{color:var(--muted);margin:4px 0 0;max-width:68ch}
+.lang{display:inline-flex;border:1px solid var(--line);border-radius:999px;overflow:hidden;background:var(--surface)}
+.lang button{font:600 13px var(--f-disp);border:0;background:none;color:var(--muted);padding:7px 14px;cursor:pointer}
+.lang button[aria-pressed="true"]{background:var(--accent);color:var(--bg)}
+button:focus-visible,.chap:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+
+/* player */
+.player{background:var(--stage);border-radius:14px;overflow:hidden;box-shadow:0 10px 30px rgba(0,0,0,.18)}
+.viewport{position:relative;width:100%;aspect-ratio:16/9;max-width:100%;overflow:hidden}
+.stage{position:absolute;left:0;top:0;width:1280px;height:720px;transform-origin:0 0;background:radial-gradient(1200px 600px at 70% -10%,#12324a 0%,var(--stage) 60%);color:var(--ink);font-family:var(--f-body)}
+.stage.paused *,.stage.paused *::before,.stage.paused *::after{animation-play-state:paused!important}
+.scene{position:absolute;inset:0;opacity:0;visibility:hidden;transition:opacity .5s}
+.scene.on{opacity:1;visibility:visible}
+.tag{position:absolute;left:56px;top:40px;font:600 15px var(--f-disp);letter-spacing:.14em;color:var(--cyan);text-transform:uppercase}
+.headline{position:absolute;left:56px;top:70px;right:56px;font:700 40px/1.3 var(--f-body);text-wrap:balance}
+.en .headline{font-family:var(--f-disp)}
+.sub{color:var(--ink-2);font-size:20px}
+html:not(.en) .t-en, html.en .t-ja{display:none}
+
+/* entrance helpers (run only while a scene is .on) */
+.a{opacity:0}
+.scene.on .a{animation:rise .7s cubic-bezier(.2,.7,.2,1) forwards;animation-delay:var(--d,0s)}
+.scene.on .a.pop{animation-name:pop}
+.scene.on .a.fade{animation-name:fade}
+@keyframes rise{from{opacity:0;transform:translateY(18px)}to{opacity:1;transform:none}}
+@keyframes pop{0%{opacity:0;transform:scale(.6) rotate(var(--r,0deg))}70%{opacity:1;transform:scale(1.06) rotate(var(--r,0deg))}100%{opacity:1;transform:scale(1) rotate(var(--r,0deg))}}
+@keyframes fade{from{opacity:0}to{opacity:1}}
+
+/* S1 grid */
+#s1 svg{position:absolute;inset:0}
+#s1 .feeder{stroke:var(--stage-line);stroke-width:2;fill:none;stroke-dasharray:1400;stroke-dashoffset:1400}
+#s1.on .feeder{animation:draw 3s ease forwards;animation-delay:var(--d,0s)}
+@keyframes draw{to{stroke-dashoffset:0}}
+#s1 .m{fill:var(--cyan);opacity:0}
+#s1.on .m{animation:blink 2.4s ease-in-out infinite;animation-delay:var(--d,0s)}
+@keyframes blink{0%{opacity:0}20%{opacity:1}60%{opacity:.35}100%{opacity:.9}}
+#s1 .q{position:absolute;left:56px;bottom:120px;right:56px;font:700 52px/1.3 var(--f-body);text-wrap:balance}
+#s1 .q small{display:block;font:500 22px var(--f-body);color:var(--ink-2);margin-top:12px}
+
+/* S2 notes */
+.notes{position:absolute;left:56px;top:190px;width:640px;display:grid;grid-template-columns:1fr 1fr;gap:26px}
+.note{background:#fff4c2;color:#2d2a1a;border-radius:4px;padding:20px 22px;min-height:150px;box-shadow:0 8px 18px rgba(0,0,0,.35);font:700 24px/1.35 var(--f-body)}
+.note small{display:block;font:500 15px/1.5 var(--f-body);color:#5d5734;margin-top:8px}
+.note:nth-child(2){background:#ffd9c7}.note:nth-child(3){background:#d4ecff}.note:nth-child(4){background:#d9f5df}
+.shot{position:absolute;border-radius:10px;overflow:hidden;border:1px solid var(--stage-line);box-shadow:0 18px 40px rgba(0,0,0,.5);background:#0b1a28}
+.shot img{display:block;width:100%;height:100%;object-fit:cover;object-position:top left}
+.cap{position:absolute;font:600 14px var(--f-disp);letter-spacing:.08em;color:var(--ink-2)}
+
+/* S3 loop */
+#s3 .loop{position:absolute;left:56px;top:180px;width:560px;height:460px}
+.node{position:absolute;width:200px;padding:16px 18px;border:1.5px solid var(--stage-line);border-radius:12px;background:var(--stage-2);font:700 20px/1.35 var(--f-body);text-align:center}
+.node small{display:block;font:400 14px var(--f-body);color:var(--ink-2)}
+.node.hot{border-color:var(--cyan);box-shadow:0 0 0 4px rgba(63,208,240,.12)}
+#s3 .ring{position:absolute;left:0;top:0}
+#s3 .ring path{fill:none;stroke:var(--cyan);stroke-width:2;stroke-dasharray:8 8}
+#s3.on .ring path{animation:flow 1.2s linear infinite}
+@keyframes flow{to{stroke-dashoffset:-32}}
+.spec{position:absolute;right:56px;top:180px;width:520px;height:460px;border-radius:14px;background:#f5f8fb;color:#13202e;padding:26px 28px;box-shadow:0 18px 40px rgba(0,0,0,.5)}
+.spec h3{margin:0 0 4px;font:700 24px var(--f-body)}
+.spec .meta{font:500 14px var(--f-body);color:#5a6b7c;margin-bottom:16px}
+.chips{display:flex;flex-wrap:wrap;gap:10px}
+.chip{font:600 15px var(--f-mono);padding:6px 12px;border-radius:6px;background:#e1edf6;color:#0a5878}
+.chip em{font-style:normal;font-family:var(--f-body);font-weight:500;color:#30475a;margin-left:6px;font-size:13px}
+.spec .tot{position:absolute;left:28px;right:28px;bottom:24px;display:flex;gap:28px;font:700 30px var(--f-disp);color:#0a5878}
+.spec .tot span small{display:block;font:500 13px var(--f-body);color:#5a6b7c}
+
+/* S4 terminal */
+.term{position:absolute;left:56px;right:56px;top:170px;bottom:60px;background:#050c14;border:1px solid var(--stage-line);border-radius:12px;overflow:hidden}
+.term .bar{height:36px;display:flex;align-items:center;gap:8px;padding:0 14px;background:#0c1a27;border-bottom:1px solid var(--stage-line);font:500 13px var(--f-mono);color:var(--ink-2)}
+.term .bar i{width:11px;height:11px;border-radius:50%;background:#30485d;display:inline-block}
+.term .body{padding:22px 28px;display:grid;gap:14px;font:400 18px/1.55 var(--f-mono)}
+.ln{display:flex;gap:14px;align-items:flex-start}
+.ln b{flex:none;width:72px;font-weight:600}
+.ln.you b{color:var(--amber)} .ln.cc b{color:var(--cyan)} .ln.ok b{color:var(--green)}
+.ln span{font-family:var(--f-body);font-size:19px}
+.ln.cmd span{font-family:var(--f-mono);font-size:17px;color:var(--ink-2)}
+.pass{color:var(--green);font-weight:600}
+.typing{display:inline-block;overflow:hidden;white-space:nowrap;max-width:0;vertical-align:bottom}
+.scene.on .typing{animation:type 3.2s steps(40,end) forwards;animation-delay:var(--d,0s)}
+@keyframes type{to{max-width:100%}}
+
+/* S5 screens */
+#s5 .frame{position:absolute;left:300px;top:170px;width:720px;height:405px}
+#s5 .frame .shot{inset:0;opacity:0}
+#s5.on .frame .shot{animation:xf 25s linear forwards}
+@keyframes xf{0%{opacity:0;transform:scale(1.03)}1.5%{opacity:1}14%{opacity:1;transform:scale(1)}16%{opacity:0}100%{opacity:0}}
+#s5 .steps{position:absolute;left:56px;top:170px;width:220px;display:grid;gap:10px}
+#s5 .st{font:600 16px var(--f-body);color:var(--ink-2);padding:8px 12px;border-left:3px solid var(--stage-line)}
+#s5.on .st{animation:stepOn 25s linear forwards}
+@keyframes stepOn{0%{color:var(--ink-2);border-color:var(--stage-line)}1%{color:var(--ink);border-color:var(--cyan)}14%{color:var(--ink);border-color:var(--cyan)}16%,100%{color:var(--ink-2);border-color:var(--stage-line)}}
+#s5 .side{position:absolute;right:56px;top:170px;width:190px;font:500 17px/1.6 var(--f-body);color:var(--ink-2)}
+
+/* S6 PRs */
+.prs{position:absolute;left:56px;top:170px;width:1168px;display:grid;grid-template-columns:1fr 1fr;gap:12px 28px}
+.pr{display:grid;grid-template-columns:56px 1fr auto;align-items:center;gap:12px;padding:12px 16px;background:var(--stage-2);border:1px solid var(--stage-line);border-radius:10px}
+.pr .n{font:700 18px var(--f-disp);color:var(--ink-2)}
+.pr .t{font:500 18px/1.35 var(--f-body)}
+.stamps{display:flex;gap:6px}
+.stamp{font:700 12px var(--f-body);padding:4px 8px;border-radius:5px;border:1.5px solid currentColor;opacity:0}
+.scene.on .stamp{animation:pop .45s forwards;animation-delay:var(--d,0s)}
+.stamp.r{color:var(--amber)}.stamp.a{color:var(--cyan)}.stamp.m{color:var(--green)}
+.rule{position:absolute;left:56px;right:56px;bottom:56px;padding:16px 22px;border:1.5px solid var(--cyan);border-radius:12px;background:rgba(63,208,240,.08);font:700 24px var(--f-body)}
+
+/* S7 numbers */
+.nums{position:absolute;left:56px;right:56px;top:200px;display:grid;grid-template-columns:repeat(3,1fr);gap:22px}
+.num{padding:22px 24px;border:1px solid var(--stage-line);border-radius:14px;background:var(--stage-2)}
+.num b{display:block;font:700 64px/1 var(--f-disp);color:var(--cyan);font-variant-numeric:tabular-nums}
+.num span{font:500 18px var(--f-body);color:var(--ink-2)}
+.caveat{position:absolute;left:56px;right:56px;bottom:50px;font:500 17px var(--f-body);color:var(--amber)}
+
+/* S8 */
+#s8 svg{position:absolute;left:56px;top:190px}
+#s8 .sim{fill:none;stroke:var(--ink-2);stroke-width:3}
+#s8 .real{fill:none;stroke:var(--cyan);stroke-width:3;stroke-dasharray:2000;stroke-dashoffset:2000}
+#s8.on .real{animation:draw 4s ease forwards;animation-delay:3s}
+#s8 .lim{stroke:var(--red);stroke-width:1.5;stroke-dasharray:6 6}
+#s8 .lbl{font:600 15px var(--f-body);fill:var(--ink-2)}
+#s8 .lbl.c{fill:var(--cyan)} #s8 .lbl.r{fill:var(--red)}
+#s8 .shot{right:56px;top:190px;width:520px;height:293px}
+#s8 .go{position:absolute;left:56px;bottom:56px;font:700 34px var(--f-body)}
+
+/* chrome under stage */
+.subs{min-height:92px;padding:14px 22px;background:#040b12;border-top:1px solid var(--stage-line);display:grid;gap:4px;align-content:center;text-align:center}
+.subs .sj{font:500 clamp(15px,2vw,19px)/1.5 var(--f-body);color:#f1f6fa}
+.subs .se{font:400 clamp(13px,1.7vw,16px)/1.5 var(--f-disp);color:#9fb6c9}
+.ctrl{display:flex;align-items:center;gap:12px;padding:10px 16px 14px;background:#040b12;color:#c9d7e3}
+.ctrl button{flex:none;width:40px;height:40px;border-radius:50%;border:1px solid #284257;background:#0d1d2b;color:#e6f1fa;cursor:pointer;display:grid;place-items:center}
+.ctrl button svg{width:18px;height:18px;fill:currentColor}
+.ctrl .play{width:48px;height:48px;background:#3fd0f0;color:#04131d;border:0}
+.bar2{position:relative;flex:1;height:8px;background:#17293a;border-radius:4px;cursor:pointer;min-width:0}
+.bar2 .fill{position:absolute;left:0;top:0;bottom:0;background:#3fd0f0;border-radius:4px}
+.bar2 .tick{position:absolute;top:-3px;width:2px;height:14px;background:#2d4a60}
+.time{font:500 13px var(--f-mono);font-variant-numeric:tabular-nums;color:#9fb6c9;flex:none}
+.poster{position:absolute;inset:0;display:grid;place-items:center;background:linear-gradient(180deg,rgba(4,11,18,.2),rgba(4,11,18,.75));cursor:pointer;border:0;padding:0;width:100%;color:#fff}
+.poster[hidden]{display:none}
+.poster span{display:flex;align-items:center;gap:12px;padding:14px 26px;border-radius:999px;background:#3fd0f0;color:#04131d;font:700 18px var(--f-body)}
+
+.chapters{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:10px}
+.chap{display:grid;grid-template-columns:auto 1fr;gap:4px 12px;text-align:left;padding:12px 14px;border:1px solid var(--line);border-radius:10px;background:var(--surface);color:var(--fg);cursor:pointer;font:inherit}
+.chap .no{grid-row:span 2;font:700 22px/1 var(--f-disp);color:var(--muted);padding-top:2px}
+.chap .tt{font-weight:700;font-size:15px;line-height:1.4}
+.chap .tm{font:500 12px var(--f-mono);color:var(--muted)}
+.chap[aria-current="true"]{border-color:var(--accent);box-shadow:inset 0 0 0 1px var(--accent)}
+.chap[aria-current="true"] .no{color:var(--accent)}
+.note-foot{font-size:13px;color:var(--muted)}
+.note-foot a{color:var(--accent)}
+/* live demo CTA: yellow "run" card */
+.demo-cta{display:flex;align-items:center;gap:18px;min-height:84px;padding:16px 22px;border-radius:16px;background:#ffd23f;color:#1d1600;text-decoration:none;box-shadow:0 6px 0 #c99a00,0 12px 24px rgba(0,0,0,.18);transition:transform .12s,box-shadow .12s;-webkit-tap-highlight-color:transparent}
+.demo-cta:hover{background:#ffdb5c}
+.demo-cta:active{transform:translateY(4px);box-shadow:0 2px 0 #c99a00,0 6px 12px rgba(0,0,0,.18)}
+.demo-cta:focus-visible{outline:3px solid var(--accent);outline-offset:3px}
+.demo-cta .go-ico{flex:none;display:grid;place-items:center;width:56px;height:56px;border-radius:50%;background:#1d1600;color:#ffd23f}
+.demo-cta .go-ico svg{width:24px;height:24px;margin-left:3px;fill:currentColor}
+.demo-cta .go-txt{display:grid;gap:2px;min-width:0;flex:1}
+.demo-cta .go-title{font:800 clamp(19px,2.6vw,24px)/1.3 var(--f-body);letter-spacing:.02em}
+.demo-cta .go-sub{font:500 14px/1.5 var(--f-body);color:#4a3d00}
+.demo-cta .go-arrow{flex:none;font:700 26px/1 var(--f-disp)}
+@media (max-width:480px){.demo-cta{gap:12px;padding:14px 16px}.demo-cta .go-ico{width:46px;height:46px}.demo-cta .go-arrow{display:none}}
+@media (prefers-reduced-motion: reduce){.scene.on .a,.scene.on .stamp{animation:none;opacity:1}#s1.on .feeder,#s8.on .real{animation:none;stroke-dashoffset:0}.scene.on .typing{animation:none;max-width:100%}}
+@media (max-width:560px){.ctrl{gap:8px}.time{display:none}}
+</style>
+<style>
+#s1 .lab{font:600 21px var(--f-mono);fill:var(--ink-2);opacity:0}
+#s1.on .lab{animation:fade .8s forwards;animation-delay:var(--d,0s)}
+#s1 .plane{fill:none;stroke:var(--stage-line);stroke-width:2}
+#s1 .m.warn{fill:var(--amber)}
+.legend-ai{position:absolute;left:56px;bottom:56px;display:flex;gap:18px;font:600 15px var(--f-body);color:var(--ink-2)}
+.legend-ai i{display:inline-block;width:12px;height:12px;border-radius:3px;margin-right:6px;vertical-align:-1px}
+#s8 .lim{stroke:var(--amber)}
+</style>
+</head>
+<body>
+
+<div class="wrap">
+  <header class="top">
+    <div>
+      <div class="eyebrow"><span class="t-ja">FDE 提案コンテンツ ・ 約3分</span><span class="t-en">FDE proposal · about 3 min</span></div>
+      <h1><span class="t-ja">UseCase案から、動いて公開されるモックアップまで</span><span class="t-en">From a use-case idea to a live, published mockup</span></h1>
+      <p class="lead"><span class="t-ja">ソフトウェア制御の旅客機を題材にしたコックピット デモが、Claude Codeとの対話でどう作られ、どう自動で公開されているかを8シーンで紹介します。字幕は日本語と英語を併記しています。</span><span class="t-en">Eight scenes on how the cockpit demo, built around a software-controlled airliner, was made through conversations with Claude Code and how it publishes itself. Subtitles show Japanese and English together.</span></p>
+    </div>
+    <div class="lang" role="group" aria-label="Language">
+      <button type="button" id="lang-ja" aria-pressed="true">日本語</button>
+      <button type="button" id="lang-en" aria-pressed="false">English</button>
+    </div>
+  </header>
+
+  <div class="player" data-testid="story-player">
+    <div class="viewport" id="viewport">
+      <div class="stage paused" id="stage">
+
+        <!-- S1 -->
+        <section class="scene" id="s1">
+          <svg width="1280" height="720" aria-hidden="true"><g transform="translate(500 10) scale(.62)">
+            <path class="plane" d="M640 60 C660 60 668 90 668 130 L668 250 L1010 380 L1010 410 L668 340 L668 470 L760 530 L760 552 L640 520 L520 552 L520 530 L612 470 L612 340 L270 410 L270 380 L612 250 L612 130 C612 90 620 60 640 60 Z" style="opacity:.55"/>
+            <path class="feeder" style="--d:0s" d="M640 110 V500"/>
+            <path class="feeder" style="--d:.4s" d="M640 300 H860 L860 360"/>
+            <path class="feeder" style="--d:.8s" d="M640 300 H420 L420 360"/>
+            <path class="feeder" style="--d:1.2s" d="M640 180 H760 M640 180 H520"/>
+            <path class="feeder" style="--d:1.6s" d="M640 430 H720 M640 430 H560"/>
+            <g id="meters"></g>
+            <text class="lab" style="--d:1.4s" x="400" y="400" text-anchor="end">ENG1</text>
+            <text class="lab" style="--d:1.6s" x="880" y="400">ENG2</text>
+            <text class="lab" style="--d:1.8s" x="775" y="170">FCC 1·2·3</text>
+            <text class="lab" style="--d:2s" x="505" y="170" text-anchor="end">AI CO-PILOT</text>
+            <text class="lab" style="--d:2.2s" x="735" y="420">HYD · ELEC</text>
+            <text class="lab" style="--d:2.4s" x="545" y="420" text-anchor="end">AFDX</text>
+          </g></svg>
+          <div class="tag a" style="--d:.2s">Cockpit Demo Platform</div>
+          <div class="q a" style="--d:2.2s">
+            <span class="t-ja">機体は、センサーとコンピューターの集まり。<br>AIとパイロットは、どう一緒に飛ぶか。<small>エンジン・飛行制御・油圧・電源。分散システムが絶えず送ってくる値</small></span>
+            <span class="t-en">An airliner is a network of sensors and computers.<br>How do AI and pilots fly it together?<small>Engines, flight control, hydraulics, power: values streaming from distributed systems</small></span>
+          </div>
+        </section>
+
+        <!-- S2 -->
+        <section class="scene" id="s2">
+          <div class="tag a">01 · Use case</div>
+          <div class="headline a" style="--d:.3s"><span class="t-ja">始まりは「この連携を見せたい」という4枚の付箋</span><span class="t-en">It started with four sticky notes: the teamwork we wanted to show</span></div>
+          <div class="notes">
+            <div class="note a pop" style="--d:1.6s;--r:-2deg"><span class="t-ja">エンジンの異常傾向</span><span class="t-en">Engine trend</span><small><span class="t-ja">片側だけEGTが上がっていく</span><span class="t-en">EGT creeping up on one side</span></small></div>
+            <div class="note a pop" style="--d:3.2s;--r:1.5deg"><span class="t-ja">センサーの食い違い</span><span class="t-en">Sensor disagreement</span><small><span class="t-ja">迎角センサ1系統だけずれる</span><span class="t-en">One angle-of-attack sensor drifts</span></small></div>
+            <div class="note a pop" style="--d:4.8s;--r:2deg"><span class="t-ja">天候と経路</span><span class="t-en">Weather and route</span><small><span class="t-ja">積乱雲・横風・ウィンドシア</span><span class="t-en">Storms, crosswind, windshear</span></small></div>
+            <div class="note a pop" style="--d:6.4s;--r:-1.5deg"><span class="t-ja">決めるのは機長</span><span class="t-en">The captain decides</span><small><span class="t-ja">AIは提案、承認はパイロット</span><span class="t-en">AI proposes, pilots approve</span></small></div>
+          </div>
+          <div class="shot a" style="--d:9s;left:740px;top:210px;width:480px;height:270px"><img src="img/cruise.jpg" alt=""></div>
+          <div class="cap a" style="--d:9.4s;left:740px;top:492px"><span class="t-ja">最初の画面（SKY 501 羽田 → 新千歳）</span><span class="t-en">First screen (SKY 501 Haneda to New Chitose)</span></div>
+        </section>
+
+        <!-- S3 -->
+        <section class="scene" id="s3">
+          <div class="tag a">02 · Requirements</div>
+          <div class="headline a" style="--d:.3s"><span class="t-ja">「何秒に何を出すか」ではなく「センサーがどんな値か」を書く</span><span class="t-en">Write what the sensors read, not what the screen should show</span></div>
+          <div class="loop">
+            <svg class="ring" width="560" height="460" aria-hidden="true"><defs><marker id="ar" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0 0L10 5L0 10z" fill="#45cdea"/></marker></defs><path d="M214 70 H324" marker-end="url(#ar)"/><path d="M430 112 V334" marker-end="url(#ar)"/><path d="M326 380 H216" marker-end="url(#ar)"/><path d="M110 334 V112" marker-end="url(#ar)"/></svg>
+            <div class="node a" style="--d:1.2s;left:10px;top:30px"><span class="t-ja">シナリオ</span><span class="t-en">Scenario</span><small><span class="t-ja">JSONにセンサー値</span><span class="t-en">Sensor values in JSON</span></small></div>
+            <div class="node hot a" style="--d:2.6s;left:330px;top:30px"><span class="t-ja">判定する</span><span class="t-en">Evaluate</span><small><span class="t-ja">健全性・注意・警告</span><span class="t-en">Health, cautions, warnings</span></small></div>
+            <div class="node a" style="--d:4s;left:330px;top:340px"><span class="t-ja">画面に描く</span><span class="t-en">Draw</span><small><span class="t-ja">6面の表示と配置図</span><span class="t-en">Six displays and layout</span></small></div>
+            <div class="node a" style="--d:5.4s;left:10px;top:340px"><span class="t-ja">人が判断</span><span class="t-en">People decide</span><small><span class="t-ja">AIの提案を承認</span><span class="t-en">Approve AI proposals</span></small></div>
+          </div>
+          <div class="spec a" style="--d:9s">
+            <h3><span class="t-ja">表示はセンサー値で決まる</span><span class="t-en">Displays follow the sensors</span></h3>
+            <div class="meta"><span class="t-ja">同じ計算で、全ての画面がそろって変わる</span><span class="t-en">One evaluation drives every display at once</span></div>
+            <div class="chips">
+              <span class="chip a pop" style="--d:10.5s">PFD<em class="t-ja">姿勢</em><em class="t-en">attitude</em></span>
+              <span class="chip a pop" style="--d:11s">ND<em class="t-ja">航法</em><em class="t-en">nav</em></span>
+              <span class="chip a pop" style="--d:11.5s">EWD<em class="t-ja">エンジン</em><em class="t-en">engines</em></span>
+              <span class="chip a pop" style="--d:12s">AI<em class="t-ja">提案</em><em class="t-en">co-pilot</em></span>
+              <span class="chip a pop" style="--d:12.5s">MESH<em class="t-ja">分散系</em><em class="t-en">systems</em></span>
+              <span class="chip a pop" style="--d:13s">AUTH<em class="t-ja">権限</em><em class="t-en">authority</em></span>
+              <span class="chip a pop" style="--d:13.5s">TL<em class="t-ja">連携</em><em class="t-en">timeline</em></span>
+              <span class="chip a pop" style="--d:14s">MAP<em class="t-ja">配置図</em><em class="t-en">layout</em></span>
+              <span class="chip a pop" style="--d:14.5s">VOICE<em class="t-ja">音声</em><em class="t-en">voice</em></span>
+              <span class="chip a pop" style="--d:15s">MON<em class="t-ja">もしも</em><em class="t-en">what-if</em></span>
+            </div>
+            <div class="tot a" style="--d:16.5s"><span>35<small><span class="t-ja">センサー項目</span><span class="t-en">sensors</span></small></span><span>6<small><span class="t-ja">大型ディスプレイ</span><span class="t-en">displays</span></small></span><span>1<small><span class="t-ja">判定ロジック</span><span class="t-en">evaluator</span></small></span></div>
+          </div>
+        </section>
+
+        <!-- S4 -->
+        <section class="scene" id="s4">
+          <div class="tag a">03 · Build with Claude Code</div>
+          <div class="headline a" style="--d:.3s"><span class="t-ja">日本語で頼み、設計を確かめてから、検証付きで届く</span><span class="t-en">Ask in plain words, check the design, receive validated work</span></div>
+          <div class="term a fade" style="--d:1s">
+            <div class="bar"><i></i><i></i><i></i>&nbsp; Cockpitnaviation-</div>
+            <div class="body">
+              <div class="ln you a" style="--d:2s"><b>Ken</b><span><span class="t-ja">シナリオをJSONで差し替えたい。表示はセンサー値から計算して、どの画面もそろって変わるように。</span><span class="t-en">I want to swap scenarios as JSON. Compute the displays from sensor values so every screen changes together.</span></span></div>
+              <div class="ln cc a" style="--d:6s"><b>Claude</b><span><span class="t-ja">シナリオの書式を設計しました。センサー35項目と、注意・警告のしきい値を確認してください。</span><span class="t-en">I designed the scenario format. Please check the 35 sensors and the caution and warning thresholds.</span></span></div>
+              <div class="ln you a" style="--d:11s"><b>Ken</b><span><span class="t-ja">OK。AIは提案まで。承認するのはパイロットで。</span><span class="t-en">OK. AI only proposes. Pilots approve.</span></span></div>
+              <div class="ln cmd a" style="--d:14.5s"><b></b><span class="typing" style="--d:14.5s">$ node tools/validate.mjs &amp;&amp; python3 tools/bundle.py</span></div>
+              <div class="ln ok a" style="--d:19s"><b>check</b><span class="pass">6 scenarios OK · builtin.js rebuilt · readme.html rebuilt</span></div>
+              <div class="ln cc a" style="--d:22.5s"><b>Claude</b><span><span class="t-ja">プルリクエストを作りました。マージすると自動で検証して公開します。</span><span class="t-en">Pull request opened. Once merged, it is validated and published automatically.</span></span></div>
+            </div>
+          </div>
+        </section>
+
+        <!-- S5 -->
+        <section class="scene" id="s5">
+          <div class="tag a">04 · Iterate</div>
+          <div class="headline a" style="--d:.3s"><span class="t-ja">一つずつ足し、そのたびに動くものを確かめる</span><span class="t-en">Add one thing at a time, and check it works each time</span></div>
+          <div class="steps">
+            <div class="st" style="animation-delay:1s">SKY 501 <span class="t-ja">二重故障</span><span class="t-en">dual failure</span></div>
+            <div class="st" style="animation-delay:5s"><span class="t-ja">センサー値モニター</span><span class="t-en">Sensor monitor</span></div>
+            <div class="st" style="animation-delay:9s">SKY 214 <span class="t-ja">ダイバート案を却下</span><span class="t-en">diversion declined</span></div>
+            <div class="st" style="animation-delay:13s">SKY 330 <span class="t-ja">バードストライク</span><span class="t-en">bird strike</span></div>
+            <div class="st" style="animation-delay:17s">SKY 605 <span class="t-ja">着陸復行</span><span class="t-en">go-around</span></div>
+            <div class="st" style="animation-delay:21s"><span class="t-ja">使い方と自動公開</span><span class="t-en">Help and auto-publish</span></div>
+          </div>
+          <div class="frame">
+            <div class="shot" style="animation-delay:1s"><img src="img/egt.jpg" alt=""></div>
+            <div class="shot" style="animation-delay:5s"><img src="img/monitor.jpg" alt=""></div>
+            <div class="shot" style="animation-delay:9s"><img src="img/divert.jpg" alt=""></div>
+            <div class="shot" style="animation-delay:13s"><img src="img/bird.jpg" alt=""></div>
+            <div class="shot" style="animation-delay:17s"><img src="img/windshear.jpg" alt=""></div>
+            <div class="shot" style="animation-delay:21s"><img src="img/readme.jpg" alt=""></div>
+          </div>
+          <div class="side a" style="--d:2s"><span class="t-ja">シナリオを足すたびに、全シナリオを自動で検証し、画面を撮って確認しています。</span><span class="t-en">Each new scenario was validated together with all the others, and checked on screen.</span></div>
+        </section>
+
+        <!-- S6 -->
+        <section class="scene" id="s6">
+          <div class="tag a">05 · Human in the loop</div>
+          <div class="headline a" style="--d:.3s"><span class="t-ja">機内でも開発でも、AIは提案し、決めるのは人</span><span class="t-en">In the cockpit and in development: AI proposes, people decide</span></div>
+          <div class="prs" id="prs"></div>
+          <div class="rule a" style="--d:17s"><span class="t-ja">main に入った変更だけが、検証を通ってから公開されます。シナリオに誤りがあれば公開は止まります。</span><span class="t-en">Only changes merged to main are published, and only after validation. A broken scenario stops the release.</span></div>
+        </section>
+
+        <!-- S7 -->
+        <section class="scene" id="s7">
+          <div class="tag a">06 · Result</div>
+          <div class="headline a" style="--d:.3s"><span class="t-ja">アイデアから、誰でも開ける公開デモまで</span><span class="t-en">From an idea to a public demo anyone can open</span></div>
+          <div class="nums">
+            <div class="num a" style="--d:1.5s"><b data-count="1">0</b><span class="t-ja">日間</span><span class="t-en">day</span></div>
+            <div class="num a" style="--d:3s"><b data-count="5">0</b><span class="t-ja">本のフライトシナリオ</span><span class="t-en">flight scenarios</span></div>
+            <div class="num a" style="--d:4.5s"><b data-count="17">0</b><span class="t-ja">件のインシデント</span><span class="t-en">incidents</span></div>
+            <div class="num a" style="--d:6s"><b data-count="35">0</b><span class="t-ja">センサー項目</span><span class="t-en">sensors</span></div>
+            <div class="num a" style="--d:7.5s"><b data-count="221">0</b><span class="t-ja">本の収録セリフ</span><span class="t-en">recorded voice lines</span></div>
+            <div class="num a" style="--d:9s"><b>Web</b><span class="t-ja">push で自動公開・zip でオフラインも</span><span class="t-en">Auto-published on push, offline zip too</span></div>
+          </div>
+          <div class="caveat a" style="--d:14s"><span class="t-ja">※ 架空の便と模擬データによるデモです。実際の航空機の運航や操縦には使いません。</span><span class="t-en">Note: a demo with fictional flights and simulated data. It is not used to operate or fly a real aircraft.</span></div>
+        </section>
+
+        <!-- S8 -->
+        <section class="scene" id="s8">
+          <div class="tag a">07 · Next</div>
+          <div class="headline a" style="--d:.3s"><span class="t-ja">次は、実際の飛行データで確かめる</span><span class="t-en">Next: prove it on real flight data</span></div>
+          <svg width="600" height="340" aria-hidden="true">
+            <line class="lim" x1="0" x2="580" y1="110" y2="110"/>
+            <text class="lbl" x="0" y="100" style="fill:var(--amber)"><tspan class="t-ja">EGT TREND（左右差 25°C）</tspan><tspan class="t-en">EGT TREND (25°C split)</tspan></text>
+            <path class="sim" d="M0 280 C120 278 200 270 260 240 S360 130 420 105 S520 96 580 98"/>
+            <path class="real" d="M0 284 L20 279 L40 282 L60 276 L80 278 L100 272 L120 275 L140 268 L160 266 L180 262 L200 258 L215 250 L230 246 L245 236 L260 238 L275 222 L290 214 L305 200 L320 192 L335 176 L350 166 L365 152 L380 140 L400 128 L420 116 L440 112 L460 104 L480 106 L500 99 L520 101 L540 96 L560 99 L580 97"/>
+            <text class="lbl" x="400" y="330"><tspan class="t-ja">模擬データ</tspan><tspan class="t-en">Simulated</tspan></text>
+            <text class="lbl c" x="490" y="330"><tspan class="t-ja">実データ</tspan><tspan class="t-en">Real data</tspan></text>
+          </svg>
+          <div class="shot a" style="--d:7s"><img src="img/tcas.jpg" alt=""></div>
+          <div class="go a" style="--d:10s"><span class="t-ja">まずは、動くものをご覧ください。</span><span class="t-en">First, let's see it running.</span></div>
+        </section>
+
+        <button class="poster" id="poster" type="button" aria-label="Play"><span><svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M7 4l14 8-14 8z"/></svg><span class="t-ja">再生する（約3分）</span><span class="t-en">Play (about 3 min)</span></span></button>
+      </div>
+    </div>
+    <div class="subs" aria-live="polite"><div class="sj" id="sub-ja"></div><div class="se" id="sub-en"></div></div>
+    <div class="ctrl">
+      <button type="button" id="prev" aria-label="Previous scene"><svg viewBox="0 0 24 24"><path d="M6 5h2v14H6zM20 5v14L9 12z"/></svg></button>
+      <button type="button" class="play" id="play" aria-label="Play"><svg viewBox="0 0 24 24" id="play-ico"><path d="M7 4l14 8-14 8z"/></svg></button>
+      <button type="button" id="next" aria-label="Next scene"><svg viewBox="0 0 24 24"><path d="M16 5h2v14h-2zM4 5v14l11-7z"/></svg></button>
+      <div class="bar2" id="bar"><div class="fill" id="fill"></div></div>
+      <div class="time" id="time">0:00 / 3:00</div>
+    </div>
+  </div>
+
+  <nav class="chapters" id="chapters" aria-label="Scenes"></nav>
+  <p class="note-foot"><span class="t-ja">※ 架空の便と模擬データによるデモです。</span><span class="t-en">Note: fictional flights and simulated data.</span> <a href="../readme.html"><span class="t-ja">使い方を見る</span><span class="t-en">How to use (Japanese)</span></a></p>
+  <a class="demo-cta" id="demo-link" href="../index.html" data-testid="demo-cta">
+    <span class="go-ico" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M6 4l15 8-15 8z"/></svg></span>
+    <span class="go-txt">
+      <span class="go-title"><span class="t-ja">ライブデモを開始する</span><span class="t-en">Start the live demo</span></span>
+      <span class="go-sub"><span class="t-ja">コックピットのダッシュボードを開いて、シナリオの再生と「もしも」の操作を試します（画面は日本語）</span><span class="t-en">Open the cockpit dashboard, play a scenario and try what-if changes (screens in Japanese)</span></span>
+    </span>
+    <span class="go-arrow" aria-hidden="true">→</span>
+  </a>
+</div>
+
+<script>
+(function(){
+  var SCENES=[
+    {id:'s1',dur:15,ja:'問いかけ',en:'The question',subs:[[0,'機体は、センサーとコンピューターの集まりです。','An airliner is a network of sensors and computers.'],[6,'AIとパイロットは、どう一緒に飛ぶのか。','How do AI and pilots fly it together?']]},
+    {id:'s2',dur:20,ja:'UseCase案',en:'Use case',subs:[[0,'始まりは、付箋に書いた4つの「見せたい連携」でした。','It started with four kinds of teamwork we wanted to show, written on sticky notes.'],[9,'その日のうちに、最初のフライトが画面で飛びました。','The first flight was flying on screen the same day.']]},
+    {id:'s3',dur:25,ja:'要件を固める',en:'Requirements',subs:[[0,'シナリオには「何を表示するか」ではなく「センサーがどんな値か」を書きます。','A scenario says what the sensors read, not what the screen should show.'],[9,'1つの判定ロジックが、健全性・注意・警告を決めます。','One evaluator decides health, cautions and warnings.'],[16,'だから6面の表示と配置図が、いつもそろって変わります。','So the six displays and the layout always change together.']]},
+    {id:'s4',dur:30,ja:'Claude Codeで作る',en:'Build with Claude Code',subs:[[0,'頼むのは日本語の会話です。','The request is a plain conversation.'],[6,'Claude Codeはまず書式を設計し、人が確認してから実装します。','Claude Code designs the format first, and builds only after a person checks it.'],[14,'全シナリオの検証と組み立てを、毎回自動で回します。','Every scenario is validated and bundled automatically, every time.'],[22,'仕上がりはプルリクエストとして届きます。','The result arrives as a pull request.']]},
+    {id:'s5',dur:25,ja:'画面が育つ',en:'The demo grows',subs:[[0,'一つずつ足し、そのたびに動くものを確かめました。','We added one thing at a time and checked it worked each time.'],[9,'油圧と燃料、台風、バードストライク、与圧とTCAS、','Hydraulics and fuel, a typhoon, a bird strike, cabin pressure and TCAS,'],[17,'ウィンドシアの着陸復行、そして使い方ページと自動公開まで。','a windshear go-around, then a help page and automatic publishing.']]},
+    {id:'s6',dur:25,ja:'人が判断する',en:'People decide',subs:[[0,'機内でAIは提案し、承認するのはパイロットです。','In the cockpit, AI proposes and pilots approve.'],[9,'開発でも同じです。作るのはAI、本番に出すかを決めるのは人。','Development works the same way. AI builds, people decide what ships.'],[17,'検証を通った変更だけが、自動で公開されます。','Only validated changes are published automatically.']]},
+    {id:'s7',dur:25,ja:'成果',en:'Result',subs:[[0,'1日で、5本のフライトと音声付きの公開デモができました。','In one day: five flights and a public demo with recorded voices.'],[14,'架空の便と模擬データによるデモで、実際の運航や操縦には使いません。','It uses fictional flights and simulated data, and is not for operating a real aircraft.']]},
+    {id:'s8',dur:15,ja:'次へ',en:'Next',subs:[[0,'次は、実際の飛行データで確かめます。','Next, we prove it on real flight data.'],[10,'まずは、動くものをご覧ください。','First, let us see it running.']]}
+  ];
+  var PRS=[
+    ['01','コックピットデモ（5フライト）と自動公開','Cockpit demo (5 flights) and auto-publish'],
+    ['02','公開URLと自動公開の流れをREADMEに','Public URL and publish flow in README'],
+    ['03','「使い方 ?」ボタンと説明ページ','“How to use” button and help pages'],
+    ['#1','セリフを自然な会話に・収録音声を同梱','Natural dialogue and recorded voices'],
+    ['#2','紹介アニメーション（このページ）','Story page (this page)']
+  ];
+  var total=0, starts=[];
+  SCENES.forEach(function(s){starts.push(total);total+=s.dur;});
+
+  var root=document.documentElement, stage=document.getElementById('stage'), vp=document.getElementById('viewport');
+  var poster=document.getElementById('poster');
+
+  // meters dots
+  var g=document.getElementById('meters'), pts=[[640,110],[640,180],[760,180],[520,180],[640,300],[860,300],[420,300],[860,360],[420,360],[640,430],[720,430],[560,430],[640,500]];
+  pts.forEach(function(p,i){var c=document.createElementNS('http://www.w3.org/2000/svg','circle');c.setAttribute('cx',p[0]);c.setAttribute('cy',p[1]);c.setAttribute('r',9);c.setAttribute('class',i===7?'m warn':'m');c.style.setProperty('--d',(1+i*0.25)+'s');g.appendChild(c);});
+
+  // PR rows
+  var prs=document.getElementById('prs');
+  PRS.forEach(function(p,i){
+    var d=1.2+i*1.7, el=document.createElement('div');
+    el.className='pr a'; el.style.setProperty('--d',d+'s');
+    el.innerHTML='<span class="n">'+p[0]+'</span><span class="t"><span class="t-ja">'+p[1]+'</span><span class="t-en">'+p[2]+'</span></span><span class="stamps">'+
+      '<span class="stamp r" style="--d:'+(d+.5)+'s"><span class="t-ja">検証</span><span class="t-en">Validate</span></span>'+
+      '<span class="stamp a" style="--d:'+(d+.9)+'s"><span class="t-ja">確認</span><span class="t-en">Review</span></span>'+
+      '<span class="stamp m" style="--d:'+(d+1.3)+'s"><span class="t-ja">公開</span><span class="t-en">Publish</span></span></span>';
+    prs.appendChild(el);
+  });
+
+  // chapters + ticks
+  var chapNav=document.getElementById('chapters'), bar=document.getElementById('bar');
+  SCENES.forEach(function(s,i){
+    var b=document.createElement('button'); b.type='button'; b.className='chap'; b.id='chap-'+s.id;
+    b.innerHTML='<span class="no">'+(i+1)+'</span><span class="tt"><span class="t-ja">'+s.ja+'</span><span class="t-en">'+s.en+'</span></span><span class="tm">'+fmt(starts[i])+' – '+fmt(starts[i]+s.dur)+'</span>';
+    b.addEventListener('click',function(){seekScene(i,true);});
+    chapNav.appendChild(b);
+    if(i>0){var t=document.createElement('div');t.className='tick';t.style.left=(starts[i]/total*100)+'%';bar.appendChild(t);}
+  });
+
+  function fmt(s){s=Math.floor(s);return Math.floor(s/60)+':'+String(s%60).padStart(2,'0');}
+
+  // scale stage
+  function fit(){var w=vp.clientWidth;stage.style.transform='scale('+(w/1280)+')';}
+  window.addEventListener('resize',fit); fit();
+
+  // language
+  function setLang(l){
+    root.classList.toggle('en',l==='en'); root.lang=l;
+    document.getElementById('lang-ja').setAttribute('aria-pressed',l==='ja');
+    document.getElementById('lang-en').setAttribute('aria-pressed',l==='en');
+    try{localStorage.setItem('cockpitDemo.storyLang',l);}catch(e){}
+    try{var u=new URL(location.href);if(u.searchParams.get('lang')!==l){u.searchParams.set('lang',l);history.replaceState(null,'',u);}}catch(e){}
+  }
+  document.getElementById('lang-ja').onclick=function(){setLang('ja');};
+  document.getElementById('lang-en').onclick=function(){setLang('en');};
+  var saved=null;
+  try{saved=new URL(location.href).searchParams.get('lang');}catch(e){}
+  if(saved!=='ja'&&saved!=='en'){try{saved=localStorage.getItem('cockpitDemo.storyLang');}catch(e){}}
+  setLang(saved==='en'?'en':'ja');
+
+  // playback
+  var t=0, playing=false, last=0, cur=-1, subIdx=-1;
+  var fill=document.getElementById('fill'), timeEl=document.getElementById('time');
+  var subJa=document.getElementById('sub-ja'), subEn=document.getElementById('sub-en');
+  var playIco=document.getElementById('play-ico'), playBtn=document.getElementById('play');
+
+  function sceneAt(x){for(var i=SCENES.length-1;i>=0;i--){if(x>=starts[i])return i;}return 0;}
+  function enter(i){
+    document.querySelectorAll('.scene.on').forEach(function(o){o.classList.remove('on');});
+    var el=document.getElementById(SCENES[i].id);
+    el.classList.remove('on'); void el.offsetWidth; el.classList.add('on');
+    cur=i; subIdx=-1;
+    document.querySelectorAll('.chap').forEach(function(c,k){c.setAttribute('aria-current',k===i?'true':'false');});
+    if(SCENES[i].id==='s7') countUp(el);
+  }
+  function countUp(el){
+    el.querySelectorAll('[data-count]').forEach(function(b,k){
+      if(window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches){b.textContent=b.dataset.count;return;}
+      var n=+b.dataset.count, delay=(1.5+k*1.5)*1000, startAt=null; b.textContent='0';
+      var wait=0;
+      function step(ts){
+        if(cur<0||SCENES[cur].id!=='s7')return;
+        if(!playing){startAt=null;requestAnimationFrame(step);return;}
+        if(startAt===null)startAt=ts-wait;
+        wait=ts-startAt;
+        var p=Math.min(1,Math.max(0,(wait-delay)/1200));
+        b.textContent=Math.round(n*p);
+        if(p<1)requestAnimationFrame(step);
+      }
+      requestAnimationFrame(step);
+    });
+  }
+  function updateSubs(){
+    var s=SCENES[cur], local=t-starts[cur], idx=0;
+    for(var k=0;k<s.subs.length;k++){if(local>=s.subs[k][0])idx=k;}
+    if(idx!==subIdx){subIdx=idx;subJa.textContent=s.subs[idx][1];subEn.textContent=s.subs[idx][2];}
+  }
+  function render(){
+    var i=sceneAt(t); if(i!==cur)enter(i);
+    updateSubs();
+    fill.style.width=(t/total*100)+'%';
+    timeEl.textContent=fmt(t)+' / '+fmt(total);
+  }
+  function loop(ts){
+    if(!playing)return;
+    var dt=(ts-last)/1000; last=ts; t+=dt;
+    if(t>=total){t=total-0.01;render();setPlaying(false);return;}
+    render(); requestAnimationFrame(loop);
+  }
+  function setPlaying(p){
+    playing=p; stage.classList.toggle('paused',!p); poster.hidden=true;
+    playIco.innerHTML=p?'<path d="M6 4h4v16H6zM14 4h4v16h-4z"/>':'<path d="M7 4l14 8-14 8z"/>';
+    playBtn.setAttribute('aria-label',p?'Pause':'Play');
+    if(p){last=performance.now();requestAnimationFrame(loop);}
+  }
+  function seekScene(i,play){t=starts[i];cur=-1;render();if(play&&!playing)setPlaying(true);}
+  playBtn.onclick=function(){if(t>=total-0.05){seekScene(0,false);}setPlaying(!playing);};
+  poster.onclick=function(){seekScene(0,false);setPlaying(true);};
+  document.getElementById('prev').onclick=function(){var i=sceneAt(t);var local=t-starts[i];seekScene(local>2||i===0?i:i-1,playing);};
+  document.getElementById('next').onclick=function(){var i=sceneAt(t);if(i<SCENES.length-1)seekScene(i+1,playing);};
+  bar.onclick=function(e){var r=bar.getBoundingClientRect();var x=(e.clientX-r.left)/r.width;var i=sceneAt(x*total);seekScene(i,playing);};
+  document.addEventListener('keydown',function(e){if(e.code==='Space'&&e.target===document.body){e.preventDefault();playBtn.click();}});
+  document.addEventListener('visibilitychange',function(){if(document.hidden&&playing)setPlaying(false);});
+
+  // resting state: scene 1, fully drawn, with poster
+  render();
+  stage.classList.remove('paused');
+  poster.hidden=false;
+  // after the intro animation has drawn, freeze until the viewer presses play
+  setTimeout(function(){if(!playing){stage.classList.add('paused');}},4500);
+})();
+</script>
+</body>
+</html>
