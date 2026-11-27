@@ -27,7 +27,7 @@ th, td { border-bottom: 1px solid var(--rule); padding: 7px 10px; text-align: le
 <p><strong>▶ デモを開く：<a href="https://kenscafe.github.io/Cockpitnaviation-/">https://kenscafe.github.io/Cockpitnaviation-/</a></strong><br>（オフライン用の zip：<a href="https://kenscafe.github.io/Cockpitnaviation-/cockpit-demo-platform.zip">https://kenscafe.github.io/Cockpitnaviation-/cockpit-demo-platform.zip</a> ）</p>
 <h2 id="起動方法">起動方法</h2>
 <h3 id="web-で見る">Web で見る</h3>
-<ol><li>上の「デモを開く」のURLをブラウザで開きます。</li><li>画面右上の「SCENARIO」からシナリオを選びます。最初は「SKY 501 羽田 → 新千歳」が流れます。</li><li>本番では、字幕帯の右にある「音声 オン」を押してください。1倍速に切り替わり、セリフが読み上げられます。</li></ol>
+<ol><li>上の「デモを開く」のURLをブラウザで開きます。</li><li>画面右上の「SCENARIO」からシナリオを選びます。最初は「SKY 501 羽田 → 新千歳」が流れます。</li><li>本番では、字幕帯の右にある「音声 オン」を押してください。1倍速に切り替わり、セリフが読み上げられます。声は最初「収録音声（同梱）」で、どのパソコンでも同じ声が流れます。「ブラウザ音声」に切り替えると、そのパソコンに入っている日本語の声のうち品質の良いものを話者ごとに選んで読み上げます。</li></ol>
 <h3 id="オフラインで見る">オフラインで見る</h3>
 <p>インターネット接続も、インストールも、サーバーも要りません。</p>
 <ol><li>上の zip をダウンロードして展開します（またはこのリポジトリを clone します）。</li><li><code>index.html</code> をブラウザで開きます（ダブルクリック、またはブラウザにドラッグ）。</li><li>あとは Web で見るときと同じです。</li></ol>
@@ -72,8 +72,10 @@ th, td { border-bottom: 1px solid var(--rule); padding: 7px 10px; text-align: le
 │   ├── 05_sky605-fuk-hnd-goaround.json
 │   ├── 09_template.json
 │   └── builtin.js          同梱シナリオをまとめたもの（tools/bundle.py で生成）
+├── voice/                  セリフごとの収録音声（tools/voice_render.py で生成。CREDITS.md に声のライセンス）
 ├── docs/SCENARIO_FORMAT.md シナリオの書き方
-├── tools/bundle.py         builtin.js の作り直し
+├── tools/bundle.py         builtin.js の作り直し（収録音声のあるセリフに audio を付ける）
+├── tools/voice_render.py   セリフの音声を作る（Open JTalk、または Google Cloud Text-to-Speech）
 ├── tools/build_docs.py     readme.html と docs/*.html の作り直し
 ├── tools/validate.mjs      シナリオ JSON の検証（Node.js）
 ├── publish.sh / publish.ps1  検証して GitHub に push
