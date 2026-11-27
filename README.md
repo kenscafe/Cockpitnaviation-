@@ -116,7 +116,7 @@
 GitHub Pages と同じ内容を Vercel でも公開できます（ビルドなしの静的サイト。設定は `vercel.json`）。
 
 1. Vercel の「Add New → Project」でこのリポジトリをインポート
-2. Framework Preset は「Other」のまま。Build Command・環境変数は不要（`vercel.json` が「ビルドなし・ルートをそのまま公開」を指定）
+2. Framework Preset は「Other」のまま。Build Command・環境変数は不要（ビルドなしで、リポジトリのルートがそのまま公開されます）
 3. Deploy を押すと `https://<プロジェクト名>.vercel.app/` で開けます。紹介アニメーションは `/story`
 4. 以後は `main` への push で自動的に本番が更新され、プルリクエストごとに Preview URL も作られます
 
