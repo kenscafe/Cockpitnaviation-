@@ -2,3 +2,4 @@ _site/
 _zip/
 .DS_Store
 __pycache__/
+tools/voices/

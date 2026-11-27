@@ -14,7 +14,7 @@
 
 1. 上の「デモを開く」のURLをブラウザで開きます。
 2. 画面右上の「SCENARIO」からシナリオを選びます。最初は「SKY 501 羽田 → 新千歳」が流れます。
-3. 本番では、字幕帯の右にある「音声 オン」を押してください。1倍速に切り替わり、セリフが読み上げられます。
+3. 本番では、字幕帯の右にある「音声 オン」を押してください。1倍速に切り替わり、セリフが読み上げられます。声は最初「収録音声（同梱）」で、どのパソコンでも同じ声が流れます。「ブラウザ音声」に切り替えると、そのパソコンに入っている日本語の声のうち品質の良いものを話者ごとに選んで読み上げます。
 
 ### オフラインで見る
 
@@ -123,8 +123,10 @@
 │   ├── 05_sky605-fuk-hnd-goaround.json
 │   ├── 09_template.json
 │   └── builtin.js          同梱シナリオをまとめたもの（tools/bundle.py で生成）
+├── voice/                  セリフごとの収録音声（tools/voice_render.py で生成。CREDITS.md に声のライセンス）
 ├── docs/SCENARIO_FORMAT.md シナリオの書き方
-├── tools/bundle.py         builtin.js の作り直し
+├── tools/bundle.py         builtin.js の作り直し（収録音声のあるセリフに audio を付ける）
+├── tools/voice_render.py   セリフの音声を作る（Open JTalk、または Google Cloud Text-to-Speech）
 ├── tools/build_docs.py     readme.html と docs/*.html の作り直し
 ├── tools/validate.mjs      シナリオ JSON の検証（Node.js）
 ├── publish.sh / publish.ps1  検証して GitHub に push

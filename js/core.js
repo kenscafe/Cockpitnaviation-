@@ -69,11 +69,11 @@
   const SENSOR_IDS = new Set(SD.SENSORS.map(s => s.id));
 
   SD.SPEAKERS = {
-    narr: { label: 'ナレーター', color: '#8796a8', lane: null, voice: { pitch: 1, rate: 1, index: 0 } },
-    capt: { label: '機長', color: '#e9eef4', lane: 'pilot', voice: { pitch: .72, rate: .95, index: 1 } },
-    fo: { label: '副操縦士', color: '#e9eef4', lane: 'pilot', voice: { pitch: 1.15, rate: 1.05, index: 2 } },
-    ai: { label: 'AI', color: '#45cdea', lane: 'ai', voice: { pitch: 1.35, rate: .95, index: 3 } },
-    atc: { label: '管制', color: '#e061d2', lane: 'atc', radio: true, voice: { pitch: .9, rate: 1.2, index: 1 } },
+    narr: { label: 'ナレーター', color: '#8796a8', lane: null, voice: { pitch: 1, rate: 1, index: 0, gender: 'f' } },
+    capt: { label: '機長', color: '#e9eef4', lane: 'pilot', voice: { pitch: .92, rate: 1, index: 1, gender: 'm' } },
+    fo: { label: '副操縦士', color: '#e9eef4', lane: 'pilot', voice: { pitch: 1.04, rate: 1.06, index: 2, gender: 'm' } },
+    ai: { label: 'AI', color: '#45cdea', lane: 'ai', voice: { pitch: 1.06, rate: 1, index: 3, gender: 'f' } },
+    atc: { label: '管制', color: '#e061d2', lane: 'atc', radio: true, voice: { pitch: .96, rate: 1.15, index: 1, gender: 'm' } },
     sys: { label: '機体システム', color: '#48dd8a', lane: 'sys', silent: true }
   };
 
@@ -155,7 +155,7 @@
     const dialogue = (s.dialogue || []).map((d, i) => {
       if (typeof d.t !== 'number' || !d.text) errors.push(`dialogue[${i}] に t と text が必要です`);
       if (d.who && !speakers[d.who]) warnings.push(`dialogue[${i}].who "${d.who}" は speakers にありません`);
-      return { t: d.t, who: speakers[d.who] ? d.who : 'narr', text: d.text || '', radio: d.radio ?? !!(speakers[d.who] || {}).radio, chime: !!d.chime, label: d.label };
+      return { t: d.t, who: speakers[d.who] ? d.who : 'narr', text: d.text || '', radio: d.radio ?? !!(speakers[d.who] || {}).radio, chime: !!d.chime, label: d.label, audio: typeof d.audio === 'string' ? d.audio : undefined };
     }).sort((a, b) => a.t - b.t);
 
     let events = (s.events || []).map(e => Array.isArray(e) ? { t: e[0], who: e[1], text: e[2] } : e).sort((a, b) => a.t - b.t);

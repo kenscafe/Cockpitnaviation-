@@ -1,5 +1,7 @@
 /* Captions + speech. Lines come from scenario.dialogue; voices from scenario.speakers.
-   With voice on, the clock waits for a line to finish before the next one starts. */
+   With voice on, the clock waits for a line to finish before the next one starts.
+   Engines: 'file' plays the pre-rendered clip in dialogue[].audio (voice/…, made by tools/voice_render.py)
+   and falls back to Claude / browser speech for lines without one. */
 (function () {
   const SD = window.SkyDemo;
   const $ = id => document.getElementById(id);
@@ -22,14 +24,41 @@
   const wait = ms => new Promise(r => setTimeout(r, ms));
 
   // ---------- speech engines
-  let jaVoices = [];
-  const loadVoices = () => { try { jaVoices = speechSynthesis.getVoices().filter(v => /^ja/i.test(v.lang)); } catch (e) {} };
+  // Browser voices: rank the Japanese voices (neural / online ones first) and give each speaker
+  // the best voice of its gender, a different one per speaker where the device has enough.
+  let jaVoices = [], assign = {};
+  const FEMALE = /nanami|ayumi|haruka|mayu|shiori|aoi|kyoko|o-?ren|mizuki|sayaka|female|女性|google 日本語/i;
+  const MALE = /keita|ichiro|daichi|naoki|otoya|hattori|takumi|\bmale|男性/i;
+  const vGender = v => FEMALE.test(v.name) ? 'f' : MALE.test(v.name) ? 'm' : '';
+  const vScore = v => (/natural|neural|online|premium|enhanced|siri/i.test(v.name) ? 40 : 0) + (/google/i.test(v.name) ? 20 : 0) + (/microsoft/i.test(v.name) ? 10 : 0) + (v.default ? 2 : 0);
+  const loadVoices = () => { try { jaVoices = speechSynthesis.getVoices().filter(v => /^ja/i.test(v.lang)).sort((a, b) => vScore(b) - vScore(a)); assign = {}; } catch (e) {} };
   if ('speechSynthesis' in window) { loadVoices(); speechSynthesis.onvoiceschanged = loadVoices; }
+  const ORDER = ['ai', 'capt', 'fo', 'narr', 'atc', 'cabin', 'gpws'];
+  function voiceFor(who) {
+    if (!jaVoices.length) return null;
+    if (!assign._done) {
+      const used = new Map();
+      const ids = Object.keys(scn.speakers).filter(k => !scn.speakers[k].silent).sort((a, b) => (ORDER.indexOf(a) + 99) % 99 - (ORDER.indexOf(b) + 99) % 99);
+      for (const k of ids) {
+        const g = ((scn.speakers[k].voice || {}).gender || '').toLowerCase();
+        const fit = jaVoices.filter(v => !g || !vGender(v) || vGender(v) === g);
+        const pool = fit.length ? fit : jaVoices;
+        const v = pool.find(x => !used.has(x)) || pool[0];
+        used.set(v, (used.get(v) || 0) + 1);
+        assign[k] = { v, shared: used.get(v) > 1, mismatch: !!g && !!vGender(v) && vGender(v) !== g, g };
+      }
+      assign._done = true;
+    }
+    return assign[who] || { v: jaVoices[0] };
+  }
   function sayBrowser(c) {
     return new Promise(res => {
       const vc = (scn.speakers[c.who] || {}).voice || {};
-      const u = new SpeechSynthesisUtterance(c.text); u.lang = 'ja-JP'; u.pitch = vc.pitch ?? 1; u.rate = vc.rate ?? 1;
-      if (jaVoices.length) u.voice = jaVoices[(vc.index || 0) % jaVoices.length];
+      const a = voiceFor(c.who);
+      let pitch = vc.pitch ?? 1;
+      if (a && (a.mismatch || a.shared)) pitch *= a.g === 'm' ? .82 : a.g === 'f' ? 1.2 : 1;   // same voice twice: keep speakers apart
+      const u = new SpeechSynthesisUtterance(c.text); u.lang = 'ja-JP'; u.pitch = Math.max(0, Math.min(2, pitch)); u.rate = vc.rate ?? 1;
+      if (a) u.voice = a.v;
       const done = () => { clearTimeout(tm); res(); };
       const tm = setTimeout(done, c.text.length * 280 + 4000);
       u.onend = done; u.onerror = done; speechSynthesis.speak(u);
@@ -45,12 +74,26 @@
       else if (code === 'rate_limited') turnOff('読み上げの上限に達しました。少し待ってから再開してください');
     });
   }
+  let clip = null;
+  function sayFile(c) {
+    return new Promise(res => {
+      const el = new Audio(c.audio); clip = el;
+      const done = ok => { clearTimeout(tm); if (clip === el) clip = null; res(ok); };
+      const tm = setTimeout(() => done(true), 30000);
+      el.onended = () => done(true); el.onerror = () => done(false);
+      el.play().catch(() => done(false));
+    });
+  }
+  const fallback = c => (tts && !optC.disabled ? sayClaude(c) : sayBrowser(c));
   async function speakLine(i, my) {
     const c = scn.dialogue[i];
     if (!c || (scn.speakers[c.who] || {}).silent) return;
     if (c.chime) { chime(); await wait(900); }
     if (c.radio) { click(); burst(.14, .16); await wait(180); if (my !== token) return; startHiss(); }
-    try { await (sel.value === 'claude' && tts ? sayClaude(c) : sayBrowser(c)); }
+    try {
+      if (sel.value === 'file' && c.audio && await sayFile(c)) {}
+      else if (my === token) await (sel.value === 'claude' && tts ? sayClaude(c) : sel.value === 'browser' ? sayBrowser(c) : fallback(c));
+    }
     finally { if (c.radio) { stopHiss(); burst(.22, .14); click(); } }
     await wait(250);
   }
@@ -71,6 +114,7 @@
   }
   function stopSpeech() {
     token++; speaking = false; cap.classList.remove('live'); stopHiss();
+    if (clip) { try { clip.pause(); } catch (e) {} clip = null; }
     if (tts && sel.value === 'claude') tts.stop().catch(() => {});
     try { speechSynthesis.cancel(); } catch (e) {}
   }
@@ -87,7 +131,7 @@
     }
     if (idx !== cur) { cur = idx; show(idx); }
   }
-  function setScenario(s) { stopSpeech(); held = false; scn = s; cur = -2; }
+  function setScenario(s) { stopSpeech(); held = false; scn = s; cur = -2; assign = {}; }
   function turnOn() {
     audio();
     on = true; btn.setAttribute('aria-pressed', 'true'); btn.textContent = '音声 オン'; stat.textContent = '1×で再生し、セリフが終わるまで次の場面を待ちます';
@@ -105,15 +149,14 @@
   const hasBrowser = 'speechSynthesis' in window;
   const optC = sel.querySelector('[value="claude"]'), optB = sel.querySelector('[value="browser"]');
   optC.disabled = true; optB.disabled = !hasBrowser;
-  if (hasBrowser) sel.value = 'browser';
-  btn.disabled = !hasBrowser;
+  sel.value = 'file';
   if (window.claude && window.claude.use) {
     window.claude.use('tts').then(t => {
-      if (!t) { if (!hasBrowser) stat.textContent = 'この環境では音声を再生できません。字幕で進行します'; return; }
-      tts = t; optC.disabled = false; sel.value = 'claude'; btn.disabled = false; stat.textContent = '';
+      if (!t) return;
+      tts = t; optC.disabled = false;
       tts.onState(({ state, reason }) => { if (state === 'idle' && reason === 'viewer_stopped' && on) turnOff('読み上げを止めました'); });
     }).catch(() => {});
-  } else if (!hasBrowser) stat.textContent = 'この環境では音声を再生できません。字幕で進行します';
+  }
 
   SD.Voice = { update, setScenario, isOn: () => on, stop: () => { if (on) turnOff(); } };
 })();
