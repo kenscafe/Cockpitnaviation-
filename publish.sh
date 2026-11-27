@@ -6,6 +6,7 @@ cd "$(dirname "$0")"
 msg="${1:-デモを更新}"
 echo "▶ シナリオを検証"; node tools/validate.mjs
 echo "▶ builtin.js を作り直す"; python3 tools/bundle.py
+echo "▶ 使い方ページを作り直す"; python3 tools/build_docs.py
 git add -A
 if git diff --cached --quiet; then echo "変更はありません"; exit 0; fi
 git commit -m "$msg"

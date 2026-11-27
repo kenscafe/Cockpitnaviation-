@@ -30,15 +30,17 @@ jobs:
         run: node tools/validate.mjs
       - name: 同梱シナリオ (builtin.js) を作り直す
         run: python3 tools/bundle.py
+      - name: 使い方ページ (readme.html, docs/*.html) を作り直す
+        run: python3 tools/build_docs.py
       - name: 公開用ファイルをまとめる
         run: |
           mkdir -p _site
-          cp -r index.html js scenarios assets docs README.md _site/
+          cp -r index.html readme.html js scenarios assets docs README.md _site/
           touch _site/.nojekyll
       - name: 配布用 zip を作る
         run: |
           mkdir -p _zip/cockpit-demo
-          cp -r index.html js scenarios assets docs tools README.md _zip/cockpit-demo/
+          cp -r index.html readme.html js scenarios assets docs tools README.md _zip/cockpit-demo/
           (cd _zip && zip -qr ../_site/cockpit-demo-platform.zip cockpit-demo)
       - uses: actions/upload-pages-artifact@v3
         with:

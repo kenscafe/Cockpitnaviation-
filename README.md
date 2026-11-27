@@ -92,7 +92,7 @@
 `main` ブランチに push すると、GitHub Actions が次を自動で行い、1〜2分で上のURLが更新されます。
 
 1. `scenarios/*.json` をすべて検証（誤りがあれば公開を止め、ログにどこが違うかを日本語で出す）
-2. `scenarios/builtin.js` を作り直す
+2. `scenarios/builtin.js` と、画面の「使い方 ?」で開くページ（`readme.html`）を作り直す
 3. GitHub Pages に公開し、配布用 zip も置く
 
 | やり方 | 手順 |
@@ -108,6 +108,7 @@
 ```
 .
 ├── index.html              画面（ダッシュボード・配置図・字幕・進行カード）
+├── readme.html             画面右上「使い方 ?」で開くページ（README.md から tools/build_docs.py で生成）
 ├── js/
 │   ├── core.js             シナリオの読み込みと検証、センサー値の補間、健全性と警告の判定
 │   ├── dashboard.js        ダッシュボードと配置図の描画（センサー値と判定結果から描く）
@@ -124,6 +125,7 @@
 │   └── builtin.js          同梱シナリオをまとめたもの（tools/bundle.py で生成）
 ├── docs/SCENARIO_FORMAT.md シナリオの書き方
 ├── tools/bundle.py         builtin.js の作り直し
+├── tools/build_docs.py     readme.html と docs/*.html の作り直し
 ├── tools/validate.mjs      シナリオ JSON の検証（Node.js）
 ├── publish.sh / publish.ps1  検証して GitHub に push
 ├── .github/workflows/pages.yml  push 時に検証して Pages に公開

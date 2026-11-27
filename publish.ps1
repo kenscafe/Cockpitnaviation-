@@ -6,6 +6,7 @@ Set-Location $PSScriptRoot
 function Run($cmd, $argv) { & $cmd @argv; if ($LASTEXITCODE -ne 0) { throw "$cmd が失敗しました" } }
 Write-Host "▶ シナリオを検証"; Run node @("tools/validate.mjs")
 Write-Host "▶ builtin.js を作り直す"; Run python @("tools/bundle.py")
+Write-Host "▶ 使い方ページを作り直す"; Run python @("tools/build_docs.py")
 Run git @("add", "-A")
 git diff --cached --quiet
 if ($LASTEXITCODE -eq 0) { Write-Host "変更はありません"; exit 0 }

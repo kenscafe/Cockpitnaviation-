@@ -64,6 +64,8 @@ body {
 .ctrl { display: flex; gap: 8px; align-items: center; }
 button { font: 600 12px var(--f-mono); color: var(--fg); background: #1a222d; border: 1px solid var(--edge); border-radius: 6px; padding: 6px 10px; cursor: pointer; }
 button:hover { border-color: var(--dim); }
+.helpLink { font: 600 12px var(--f-mono); color: var(--cyan); border: 1px solid var(--cyan); border-radius: 6px; padding: 6px 10px; text-decoration: none; white-space: nowrap; }
+.helpLink:hover { background: #0e2a33; }
 button:focus-visible, input:focus-visible { outline: 2px solid var(--cyan); outline-offset: 2px; }
 button[aria-pressed="true"] { color: var(--cyan); border-color: var(--cyan); background: #0e2a33; }
 #play { min-width: 74px; }
@@ -163,6 +165,7 @@ body { padding-block: 20px 40px; }
       <button id="scnOpen" type="button">ファイルを開く…</button>
       <input id="scnFile" type="file" accept=".json,application/json" hidden>
       <button id="scnSave" type="button" title="いま再生中のシナリオをJSONファイルとして保存">JSONで保存</button>
+      <a class="helpLink" href="readme.html" target="_blank" rel="noopener" title="使い方・シナリオの書き方・更新と公開（別タブで開きます）">使い方 ?</a>
     </div>
     <div class="legend">
       <span><i style="background:var(--green)"></i>正常</span>

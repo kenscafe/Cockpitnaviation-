@@ -1,0 +1,101 @@
+<!doctype html>
+<html lang="ja"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>シナリオの書き方（cockpit-demo-scenario/1）</title><link rel="stylesheet" href="../assets/fonts/fonts.css"><style>
+:root { color-scheme: dark; --room:#0c1117; --card:#10161e; --rule:#223041; --edge:#2e3947; --fg:#e9eef4; --dim:#8796a8; --cyan:#45cdea;
+  --f-display:"Chakra Petch","Noto Sans JP",system-ui,sans-serif; --f-body:"Noto Sans JP","Hiragino Sans","Yu Gothic",system-ui,sans-serif;
+  --f-mono:"JetBrains Mono",ui-monospace,"SFMono-Regular",Menlo,monospace; }
+html, body { background: var(--room); }
+body { margin: 0; color: var(--fg); font: 15px/1.75 var(--f-body); }
+.nav { position: sticky; top: 0; display: flex; gap: 16px; align-items: center; flex-wrap: wrap; padding: 10px 16px; background: rgba(12,17,23,.94);
+  border-bottom: 1px solid var(--rule); font: 600 13px var(--f-mono); z-index: 1; }
+.nav a { color: var(--fg); text-decoration: none; } .nav a:hover, .nav a[aria-current] { color: var(--cyan); }
+.nav .back { border: 1px solid var(--cyan); color: var(--cyan); border-radius: 6px; padding: 4px 10px; }
+main { max-width: 880px; margin: 0 auto; padding: 24px 16px 64px; }
+h1, h2, h3 { font-family: var(--f-display); line-height: 1.35; } h1 { font-size: 28px; } h2 { font-size: 21px; margin-top: 40px; padding-top: 12px; border-top: 1px solid var(--rule); }
+a { color: var(--cyan); } img { vertical-align: middle; max-width: 100%; }
+code { font: 13px var(--f-mono); background: var(--card); border: 1px solid var(--rule); border-radius: 4px; padding: 1px 5px; overflow-wrap: anywhere; }
+pre { background: var(--card); border: 1px solid var(--rule); border-radius: 8px; padding: 12px 14px; overflow-x: auto; }
+pre code { border: 0; padding: 0; background: none; overflow-wrap: normal; }
+.tbl { overflow-x: auto; } table { border-collapse: collapse; width: 100%; font-size: 14px; }
+th, td { border-bottom: 1px solid var(--rule); padding: 7px 10px; text-align: left; vertical-align: top; } th { color: var(--dim); font-weight: 600; white-space: nowrap; }
+</style></head>
+<body><nav class="nav"><a class="back" href="../index.html">← デモに戻る</a><a href="../readme.html">使い方</a><a href="../docs/scenario-format.html" aria-current=page>シナリオの書き方</a><a href="../docs/publishing.html">更新と公開</a></nav>
+<main>
+<h1 id="シナリオの書き方cockpit-demo-scenario/1">シナリオの書き方（cockpit-demo-scenario/1）</h1>
+<p>シナリオは1つの JSON ファイルです。時刻はすべて「デモ開始からの秒数」で書きます。<br>完全な例は <code>scenarios/01_sky501-hnd-cts.json</code>、最小の例は <code>scenarios/09_template.json</code> です。</p>
+<pre class="json"><code>{
+  &quot;format&quot;: &quot;cockpit-demo-scenario/1&quot;,
+  &quot;meta&quot;:      { … },   // 必須：題名と長さ
+  &quot;scenes&quot;:    [ … ],   // 必須：シーンの区切り
+  &quot;sensors&quot;:   { … },   // センサー値の時系列（表示はここから決まる）
+  &quot;states&quot;:    { … },   // 権限モードなど、段階的に切り替わる値
+  &quot;incidents&quot;: [ … ],   // 検知 → 提案 → 判断 → 反映 の流れ
+  &quot;dialogue&quot;:  [ … ],   // 字幕と音声
+  &quot;events&quot;:    [ … ],   // 進行カードと連携タイムラインに出す短い出来事（省略可）
+  &quot;speakers&quot;:  { … },   // 話者の追加・変更（省略可）
+  &quot;limits&quot;:    { … },   // 注意・警告のしきい値（省略可）
+  &quot;alertNotes&quot;:{ … },   // 注意カードの文面の上書き（省略可）
+  &quot;planned&quot;:   { … },   // 当初の飛行計画（省略可）
+  &quot;chart&quot;:     { … },   // 進行カードの目印と気象（省略可）
+  &quot;aiIdle&quot;:    { … }    // 提案がないときの AI 画面の文面（省略可）
+}</code></pre>
+<h2 id="meta必須">meta（必須）</h2>
+<div class="tbl"><table><thead><tr><th>キー</th><th>内容</th><th>例</th></tr></thead><tbody><tr><td><code>id</code></td><td>保存時のファイル名に使う</td><td><code>&quot;sky501-hnd-cts&quot;</code></td></tr><tr><td><code>title</code></td><td>画面上部とシナリオ一覧に出る題名（必須）</td><td><code>&quot;SKY 501 羽田 → 新千歳&quot;</code></td></tr><tr><td><code>subtitle</code></td><td>題名の横の説明。省略すると長さとシーン数を自動で出す</td><td></td></tr><tr><td><code>flight</code></td><td>便名</td><td><code>&quot;SKY 501&quot;</code></td></tr><tr><td><code>from</code> / <code>to</code></td><td>出発地・到着地。<code>code</code>、<code>name</code>、<code>runway</code></td><td><code>{&quot;code&quot;: &quot;RJTT&quot;, &quot;name&quot;: &quot;羽田&quot;, &quot;runway&quot;: &quot;05&quot;}</code></td></tr><tr><td><code>landing</code></td><td>ダイバートなどで実際に降りた空港（進行カードの着陸地点に表示）。省略すると <code>to</code></td><td><code>{&quot;code&quot;: &quot;RJSS&quot;, &quot;name&quot;: &quot;仙台&quot;, &quot;runway&quot;: &quot;27&quot;}</code></td></tr><tr><td><code>duration</code></td><td>デモの長さ（秒、必須）</td><td><code>300</code></td></tr><tr><td><code>description</code></td><td>メモ（表示しない）</td><td></td></tr></tbody></table></div>
+<h2 id="scenes必須">scenes（必須）</h2>
+<pre class="json"><code>{ &quot;t&quot;: 65, &quot;name&quot;: &quot;上昇中の二重故障&quot;, &quot;phase&quot;: &quot;上昇&quot;, &quot;focus&quot;: { &quot;panels&quot;: [&quot;dash&quot;, &quot;air&quot;], &quot;cards&quot;: [2, 3, 4] } }</code></pre>
+<ul><li><code>t</code> からそのシーン。次のシーンの <code>t</code> まで続きます。← / → キーはシーンの頭へ移動します。</li><li><code>focus.panels</code>：シアンの枠で強調する画面。<code>&quot;dash&quot;</code>（ダッシュボード）、<code>&quot;air&quot;</code>（配置図）。</li><li><code>focus.cards</code>：配置図で明るく残すカードの番号（1 電源・油圧、2 エンジン、3 AI、4 飛行制御、5 コックピット、6 操縦翼面、7 燃料、8 データバス、9 データリンク、10 センサ群）。</li></ul>
+<p>注意・警告が出ている系統のカードは自動で加わります（止めるときは <code>&quot;auto&quot;: false</code>）。</p>
+<h2 id="sensors表示を決める値">sensors（表示を決める値）</h2>
+<p>書き方は3通りです。</p>
+<pre class="json"><code>&quot;alt&quot;:   [[0, 0], [56, 0], [66, 1500], [126, 33000]],   // [秒, 値] の並び。間はなめらかに補間
+&quot;hyd_1&quot;: 3000,                                           // ずっと同じ値
+&quot;egt_2&quot;: { &quot;base&quot;: &quot;egt_1&quot;, &quot;add&quot;: [[0, 4], [80, 34]] }   // 別のセンサー ＋ 差分（差分も時系列で書ける）</code></pre>
+<p><code>base</code> を使うと「ENG2 は ENG1 と同じ動きで、80秒から 34°C 高い」のように、異常の部分だけを書けます。</p>
+<div class="tbl"><table><thead><tr><th>名前</th><th>内容</th><th>単位</th><th>省略時</th></tr></thead><tbody><tr><td><code>alt</code></td><td>高度</td><td>ft</td><td>0</td></tr><tr><td><code>ias</code></td><td>指示対気速度</td><td>kt</td><td>0</td></tr><tr><td><code>gs</code></td><td>対地速度</td><td>kt</td><td>速度と高度から概算</td></tr><tr><td><code>hdg</code></td><td>機首方位（359→0 をまたいでも正しく補間）</td><td>°</td><td>0</td></tr><tr><td><code>pitch</code> / <code>roll</code></td><td>姿勢</td><td>°</td><td>昇降率・旋回率から自動</td></tr><tr><td><code>vs</code></td><td>昇降率</td><td>fpm</td><td>高度の変化から自動</td></tr><tr><td><code>n1_1</code> <code>n1_2</code></td><td>エンジン N1</td><td>%</td><td>20</td></tr><tr><td><code>n2_1</code> <code>n2_2</code></td><td>エンジン N2</td><td>%</td><td>N1 から概算</td></tr><tr><td><code>egt_1</code> <code>egt_2</code></td><td>排気温度</td><td>°C</td><td>N1 から概算</td></tr><tr><td><code>ff_1</code> <code>ff_2</code></td><td>燃料流量</td><td>kg/h</td><td>N1 から概算</td></tr><tr><td><code>fuel_l</code> <code>fuel_r</code> <code>fuel_c</code></td><td>左翼・右翼・中央タンク</td><td>kg</td><td>左右 12,000</td></tr><tr><td><code>hyd_1</code> <code>hyd_2</code> <code>hyd_3</code></td><td>油圧</td><td>psi</td><td>3000</td></tr><tr><td><code>gen_1</code> <code>gen_2</code></td><td>発電機出力</td><td>kVA</td><td>エンジン作動中は 90</td></tr><tr><td><code>apu_gen</code></td><td>APU 発電機出力</td><td>kVA</td><td>0</td></tr><tr><td><code>aoa_1</code> <code>aoa_2</code> <code>aoa_3</code></td><td>迎角センサ（3系統で多数決）</td><td>°</td><td>速度から概算（3系統一致）</td></tr><tr><td><code>wind_dir</code> <code>wind_spd</code></td><td>風向・風速</td><td>°, kt</td><td>0</td></tr><tr><td><code>xwind</code></td><td>着陸予定滑走路の横風成分</td><td>kt</td><td>0</td></tr><tr><td><code>wx_dist</code> <code>wx_brg</code> <code>wx_level</code></td><td>前方の積乱雲の距離・相対方位（左がマイナス）・強度 0〜3</td><td>km, °, -</td><td>なし</td></tr><tr><td><code>cab_alt</code></td><td>客室高度（与圧）</td><td>ft</td><td>機体高度の22%（最大 8,000）</td></tr><tr><td><code>ai_latency</code></td><td>AI の応答遅延</td><td>ms</td><td>38</td></tr></tbody></table></div>
+<h2 id="注意・警告の判定limits-で調整">注意・警告の判定（limits で調整）</h2>
+<div class="tbl"><table><thead><tr><th>判定</th><th>条件</th><th>既定値</th></tr></thead><tbody><tr><td><code>ENGn_EGT</code> 注意</td><td>もう一方より EGT が <code>egtSplit</code> 以上高く、N1 は同じか低い</td><td>25°C</td></tr><tr><td><code>ENGn_OVHT</code> 警告</td><td>EGT が <code>egtMax</code> を超える</td><td>950°C</td></tr><tr><td><code>ENGn_FAIL</code> 警告</td><td>飛行中に N2 が <code>n2Min</code> 未満</td><td>50%</td></tr><tr><td><code>FCCn_AOA</code> 注意</td><td>迎角センサの1系統が中央値から <code>aoaDisagree</code> 以上ずれる → その FCC を多数決から除外</td><td>2.0°</td></tr><tr><td><code>HYDn_LO</code> / <code>HYDn_FAIL</code> 注意</td><td>油圧が <code>hydLow</code> / <code>hydFail</code> 未満</td><td>2200 / 500 psi</td></tr><tr><td><code>GENn_FAULT</code> 注意</td><td>エンジン作動中に発電機出力が <code>genMin</code> 未満</td><td>10 kVA</td></tr><tr><td><code>FUEL_IMBAL</code> 注意</td><td>左右タンクの差が <code>fuelImbalance</code> を超える</td><td>1500 kg</td></tr><tr><td><code>FUEL_LOW</code> 警告</td><td>総燃料が <code>fuelLow</code> 未満</td><td>3000 kg</td></tr><tr><td><code>XWIND</code> 注意</td><td>横風が <code>xwind</code> を超える</td><td>20 kt</td></tr><tr><td><code>WX_AHEAD</code> 注意</td><td>強度 <code>wxLevel</code> 以上の積乱雲が前方 ±45° 以内、<code>wxDist</code> 未満</td><td>2 / 100 km</td></tr><tr><td><code>CAB_PR</code> 警告</td><td>客室高度が <code>cabAlt</code> を超える</td><td>9550 ft</td></tr><tr><td><code>TCAS_TA</code> 情報 / <code>TCAS_RA</code> 警告</td><td><code>states.tcas</code> が <code>&quot;ta&quot;</code> / <code>&quot;ra_climb&quot;</code>・<code>&quot;ra_descend&quot;</code>（PFD に TRAFFIC / CLIMB, CLIMB を表示）</td><td></td></tr><tr><td><code>WINDSHEAR</code> 警告</td><td><code>states.windshear</code> が <code>true</code>（PFD に WINDSHEAR を表示）</td><td></td></tr><tr><td><code>DATALINK</code> 情報</td><td><code>states.datalink</code> が <code>&quot;lost&quot;</code></td><td></td></tr></tbody></table></div>
+<p>注意カードの文面を変えたいときは <code>alertNotes</code> に書きます。</p>
+<pre class="json"><code>&quot;alertNotes&quot;: { &quot;HYD2_LO&quot;: { &quot;jp&quot;: &quot;油圧2系統 圧力低下&quot;, &quot;detail&quot;: &quot;毎分約900psiで低下中&quot;, &quot;actions&quot;: [&quot;· HYD 2 PUMP .... OFF&quot;] } }</code></pre>
+<h2 id="states段階的に切り替わる値">states（段階的に切り替わる値）</h2>
+<p><code>[[秒, 値], …]</code> で書きます。次の時刻まで同じ値が続きます。<code>null</code> は「表示しない」です。</p>
+<div class="tbl"><table><thead><tr><th>名前</th><th>内容</th><th>値の例</th></tr></thead><tbody><tr><td><code>authority</code></td><td>権限モード</td><td><code>&quot;manual&quot;</code> <code>&quot;assist&quot;</code> <code>&quot;auto&quot;</code></td></tr><tr><td><code>fcu_alt</code> <code>fcu_spd</code> <code>fcu_hdg</code> <code>fcu_vs</code></td><td>オートパイロットの設定値（FCU と PFD の目標表示）</td><td><code>33000</code></td></tr><tr><td><code>thrust_limit_1</code> <code>thrust_limit_2</code></td><td>推力制限（N1 計器にシアンの線）</td><td><code>85</code></td></tr><tr><td><code>apu</code></td><td>APU の状態</td><td><code>&quot;off&quot;</code> <code>&quot;starting&quot;</code> <code>&quot;on&quot;</code> <code>&quot;fail&quot;</code></td></tr><tr><td><code>datalink</code></td><td>データリンク</td><td><code>&quot;ok&quot;</code> <code>&quot;lost&quot;</code></td></tr><tr><td><code>eta</code></td><td>定刻比（分）</td><td><code>4</code></td></tr><tr><td><code>nav_wpt</code></td><td>ND に出す次の地点名</td><td><code>&quot;KOVAL&quot;</code></td></tr><tr><td><code>tcas</code></td><td>TCAS の状態</td><td><code>&quot;clear&quot;</code> <code>&quot;ta&quot;</code> <code>&quot;ra_climb&quot;</code> <code>&quot;ra_descend&quot;</code></td></tr><tr><td><code>windshear</code></td><td>ウィンドシアの検知</td><td><code>true</code> <code>false</code></td></tr><tr><td><code>fma_spd</code> <code>fma_vert</code> <code>fma_lat</code> <code>ap</code></td><td>PFD 上部の表示を上書き（省略時は飛行状態から自動）</td><td><code>&quot;ALT CRZ&quot;</code></td></tr><tr><td><code>memo</code></td><td>EWD のメモ欄に1行追加</td><td><code>&quot;SEAT BELTS&quot;</code></td></tr></tbody></table></div>
+<p><code>nodes</code> に <code>{&quot;satcom&quot;: [[0, &quot;ok&quot;], [120, &quot;fail&quot;]]}</code> のように書くと、24個の監視対象（<code>fadec_1</code>、<code>fcc_2</code>、<code>irs_3</code>、<code>satcom</code> など）の状態を直接指定できます。</p>
+<h2 id="incidents検知-→-提案-→-判断-→-反映">incidents（検知 → 提案 → 判断 → 反映）</h2>
+<pre class="json"><code>{
+  &quot;id&quot;: &quot;eng2-fcc2&quot;,
+  &quot;title&quot;: &quot;ENG2 EGT上昇 · FCC-2切離し&quot;,
+  &quot;steps&quot;: { &quot;detect&quot;: 80, &quot;propose&quot;: 83, &quot;decide&quot;: 98, &quot;apply&quot;: 101 },
+  &quot;decision&quot;: &quot;approve&quot;,
+  &quot;systems&quot;: [2, 3, 4],
+  &quot;chart&quot;: true,
+  &quot;proposal&quot;: {
+    &quot;title&quot;: &quot;ENG2 推力85%制限 ・ FL330へ&quot;,
+    &quot;line&quot;: &quot;到着 +4分 ・ 燃料は十分&quot;,
+    &quot;src&quot;: &quot;根拠：EGT傾向 ／ 類似事例&quot;,
+    &quot;conf&quot;: 0.9,
+    &quot;memo&quot;: &quot;ENG2 LIM / FL330&quot;,
+    &quot;targets&quot;: { &quot;alt&quot;: 33000 },
+    &quot;rejectNote&quot;: &quot;&quot;
+  }
+}</code></pre>
+<ul><li><code>propose</code> から <code>decide</code> までの間、AI 画面に提案カード（シアン）が出て、EWD に「PENDING CREW ACK」、連携タイムラインに「検討中」が出ます。</li><li><code>decision</code> を <code>&quot;reject&quot;</code> にすると、判断のステップが「却下」になり、カードには <code>rejectNote</code> が出ます。</li><li><code>targets</code> に <code>alt</code>（高度）、<code>spd</code>（速度）、<code>hdg</code>（方位）、<code>route</code>（<code>&quot;left&quot;</code> / <code>&quot;right&quot;</code>）を書くと、承認待ちの間だけ FCU・PFD・ND・垂直表示に「AI案」として重ねて表示します。</li><li><code>chart: false</code> にすると進行カードに印を出しません（整備レポートのような後処理向け）。</li><li>異常そのもの（EGT 上昇など）は <code>sensors</code> に書きます。incidents は人と AI のやりとりだけを表します。</li></ul>
+<h2 id="dialogue字幕と音声">dialogue（字幕と音声）</h2>
+<pre class="json"><code>{ &quot;t&quot;: 80, &quot;who&quot;: &quot;ai&quot;, &quot;text&quot;: &quot;エンジン2の排気温度が上昇傾向です。&quot;, &quot;chime&quot;: true }</code></pre>
+<div class="tbl"><table><thead><tr><th>キー</th><th>内容</th></tr></thead><tbody><tr><td><code>who</code></td><td>話者。<code>narr</code> ナレーター、<code>capt</code> 機長、<code>fo</code> 副操縦士、<code>ai</code> AI、<code>atc</code> 管制、<code>sys</code> 機体システム（字幕のみ）</td></tr><tr><td><code>radio</code></td><td>無線の音（カチッ＋ノイズ）を付ける。<code>atc</code> は自動で付く</td></tr><tr><td><code>chime</code></td><td>読み上げの前にチャイムを鳴らす</td></tr></tbody></table></div>
+<p>音声オンのときは、セリフが終わるまで次のセリフの時刻で時計が止まって待ちます。</p>
+<h2 id="speakers話者の追加">speakers（話者の追加）</h2>
+<pre class="json"><code>&quot;speakers&quot;: { &quot;cabin&quot;: { &quot;label&quot;: &quot;客室乗務員&quot;, &quot;color&quot;: &quot;#c9b6f2&quot;, &quot;voice&quot;: { &quot;pitch&quot;: 1.3, &quot;rate&quot;: 1.05, &quot;index&quot;: 0 } } }</code></pre>
+<p><code>voice.index</code> はブラウザに入っている日本語音声の何番目を使うかです。<code>lane</code> に <code>&quot;pilot&quot;</code> <code>&quot;ai&quot;</code> <code>&quot;sys&quot;</code> <code>&quot;atc&quot;</code> を書くと、<code>events</code> を省略したときにそのレーンへ出来事として並びます。</p>
+<h2 id="events短い出来事、省略可">events（短い出来事、省略可）</h2>
+<pre class="json"><code>&quot;events&quot;: [[80, &quot;sys&quot;, &quot;ENG2 EGT 注意域 · FCC-2 を自動除外&quot;], [83, &quot;ai&quot;, &quot;AI：推力制限を提案&quot;]]</code></pre>
+<p>2番目は <code>sys</code> <code>ai</code> <code>pilot</code> <code>atc</code> のどれかです。進行カードの下段と、ダッシュボードの連携タイムラインに出ます。省略すると dialogue から自動で作ります。</p>
+<h2 id="planned-/-chart-/-aiidle省略可">planned / chart / aiIdle（省略可）</h2>
+<pre class="json"><code>&quot;planned&quot;: { &quot;alt&quot;: [[56, 0], [132, 37000], [260, 0]] },
+&quot;chart&quot;: {
+  &quot;markers&quot;: [[56, &quot;V1 · ROTATE&quot;], [260, &quot;接地 +10分&quot;]],
+  &quot;weather&quot;: [{ &quot;t&quot;: 150, &quot;alt&quot;: 36000, &quot;label&quot;: &quot;積乱雲 · 左へ迂回&quot; }]
+},
+&quot;aiIdle&quot;: { &quot;title&quot;: &quot;出発前の自己診断　完了&quot;, &quot;line&quot;: &quot;10機能 正常&quot;, &quot;src&quot;: &quot;待機中&quot; }</code></pre>
+<h2 id="うまく動かないとき">うまく動かないとき</h2>
+<ul><li>読み込み時に、足りない項目や形式の誤りを画面上部に日本語で表示します。</li><li>センサー名の書き間違いは「表示に使われないセンサー名です」と注意が出ます（読み込みは続きます）。</li><li>画面の「センサー値モニター」で、いまの値と出ている注意・警告を確かめられます。</li></ul>
+</main></body></html>
