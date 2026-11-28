@@ -1,0 +1,1381 @@
+<!doctype html>
+<html lang="ja"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>車両システム配置図</title></head><body>
+
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@500;600&family=JetBrains+Mono:wght@400;600&family=Noto+Sans+JP:wght@400;500;700&display=swap">
+<style>
+.dash-only{display:none!important}
+/* Layout: コックピット・ダッシュボード v0.2 と同じ「上部パネル＋大型6画面」と番号付きの凡例。その上に再生操作とナレーション帯を足す。夜間の車内という単一のダーク表現。 */
+:root {
+  color-scheme: dark;
+  --room: #0c1117;
+  --shell: #1a212b;
+  --shell-hi: #262f3b;
+  --screen: #03060a;
+  --rule: #223041;
+  --fg: #e9eef4;
+  --dim: #8796a8;
+  --green: #48dd8a;
+  --cyan: #45cdea;
+  --magenta: #e061d2;
+  --amber: #f3b23e;
+  --red: #f0524f;
+  --sym: #f6d64a;
+  --note: #f4f6f8;
+  --f-display: "Chakra Petch", "Noto Sans JP", system-ui, sans-serif;
+  --f-body: "Noto Sans JP", "Hiragino Sans", "Yu Gothic", system-ui, sans-serif;
+  --f-mono: "JetBrains Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
+}
+html { background: var(--room); }
+body {
+  background: var(--room); color: var(--fg); font-family: var(--f-body);
+  line-height: 1.7; font-size: 15px;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  padding-block: 32px 72px;
+}
+.wrap { max-width: 1240px; margin: 0 auto; display: grid; gap: 24px; }
+header { display: grid; gap: 8px; max-width: 74ch; }
+.eyebrow { font-family: var(--f-mono); font-size: 12px; letter-spacing: .12em; color: var(--cyan); text-transform: uppercase; }
+h1 { font-family: var(--f-display); font-weight: 600; font-size: clamp(26px, 4vw, 40px); line-height: 1.2; margin: 0; text-wrap: balance; letter-spacing: .01em; }
+.lead { color: var(--dim); margin: 0; }
+figure { margin: 0; }
+.scroller { overflow-x: auto; border-radius: 18px; background: var(--shell); box-shadow: 0 30px 80px rgba(0,0,0,.45); }
+.scroller svg { display: block; width: 100%; min-width: 820px; height: auto; user-select: none; }
+figcaption { font-size: 13px; color: var(--dim); margin-top: 10px; }
+h2 { font-family: var(--f-display); font-weight: 600; font-size: 20px; margin: 0; }
+.key { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 14px 28px; list-style: none; padding: 0; margin: 0; }
+.key li { display: grid; grid-template-columns: 28px 1fr; gap: 12px; align-items: start; min-width: 0; }
+.badge { width: 26px; height: 26px; border-radius: 50%; background: var(--note); color: var(--room); font: 600 13px/26px var(--f-mono); text-align: center; }
+.key b { display: block; font-weight: 700; }
+.key span { color: var(--dim); font-size: 14px; }
+.colors { display: flex; flex-wrap: wrap; gap: 10px 22px; font-size: 14px; color: var(--dim); }
+.colors i { display: inline-block; width: 12px; height: 12px; border-radius: 2px; margin-right: 8px; vertical-align: -1px; }
+section { display: grid; gap: 14px; }
+
+/* console */
+.console { display: grid; gap: 12px; background: var(--shell); border: 1px solid var(--shell-hi); border-radius: 14px; padding: 14px 16px; }
+.row { display: flex; flex-wrap: wrap; gap: 8px 10px; align-items: center; min-width: 0; }
+.lbl { font-family: var(--f-mono); font-size: 11px; letter-spacing: .1em; color: var(--dim); text-transform: uppercase; margin-right: 4px; }
+button { font: 500 13px/1.2 var(--f-body); color: var(--fg); background: #121a24; border: 1px solid #2e3947; border-radius: 8px; padding: 8px 12px; cursor: pointer; }
+button:hover { border-color: #4a5868; }
+button:focus-visible { outline: 2px solid var(--cyan); outline-offset: 2px; }
+button[aria-pressed="true"] { background: #0e2a33; border-color: var(--cyan); color: var(--cyan); }
+button.go { background: #123a24; border-color: var(--green); color: var(--green); font-weight: 700; }
+button.warn { background: #2b2210; border-color: var(--amber); color: var(--amber); font-weight: 700; }
+button:disabled { opacity: .4; cursor: default; }
+.scn small { display: block; font-size: 11px; color: var(--dim); }
+.scn[aria-pressed="true"] small { color: var(--cyan); opacity: .8; }
+.clock { font-family: var(--f-mono); font-size: 13px; color: var(--dim); font-variant-numeric: tabular-nums; }
+.bar { flex: 1 1 160px; height: 6px; background: #0b1016; border-radius: 3px; overflow: hidden; min-width: 120px; }
+.bar i { display: block; height: 100%; width: 0; background: var(--cyan); }
+.cap { font-size: 15px; line-height: 1.7; min-height: 3.4em; border-left: 3px solid var(--cyan); padding: 4px 0 4px 12px; color: var(--fg); }
+.sub { position: absolute; left: 50%; bottom: 10px; z-index: 2; transform: translateX(-50%); width: max-content; max-width: min(92%, 920px); background: rgba(3,6,10,.86); border: 1px solid #2e3947; color: var(--fg); padding: 10px 18px; border-radius: 10px; font-size: clamp(14px, 1.5vw, 18px); line-height: 1.6; text-align: center; pointer-events: none; text-wrap: balance; }
+.sub:empty { display: none; }
+.stage { position: relative; }
+.pill { font-family: var(--f-mono); font-size: 11px; color: var(--cyan); border: 1px solid var(--cyan); border-radius: 999px; padding: 2px 10px; }
+.pill:empty { display: none; }
+.brand { display: flex; align-items: center; gap: 12px; }
+.brand img { width: 44px; height: 44px; flex: none; }
+.copy { position: fixed; left: 0; right: 0; bottom: 0; z-index: 5; text-align: center; padding: 4px 16px calc(4px + env(safe-area-inset-bottom, 0px)); font: 11px/1.5 var(--f-mono); letter-spacing: .06em; color: var(--dim); background: rgba(12,17,23,.92); border-top: 1px solid var(--rule); }
+.fold { border-top: 1px solid var(--rule); padding-top: 12px; }
+.fold summary { cursor: pointer; list-style: none; display: flex; align-items: center; gap: 10px; }
+.fold summary::-webkit-details-marker { display: none; }
+.fold summary::before { content: "▸"; color: var(--cyan); font-family: var(--f-mono); transition: transform .15s; }
+.fold[open] summary::before { transform: rotate(90deg); }
+.fold summary:focus-visible { outline: 2px solid var(--cyan); outline-offset: 4px; border-radius: 4px; }
+.fold summary::after { content: "クリックで開く"; font-size: 12px; color: var(--dim); }
+.fold[open] summary::after { content: "クリックで閉じる"; }
+.foldBody { display: grid; gap: 14px; margin-top: 14px; }
+@media (prefers-reduced-motion: reduce) { .fold summary::before { transition: none; } }
+.sep { width: 1px; height: 24px; background: var(--rule); }
+
+/* SVG text styles */
+.t-d { font-family: var(--f-display); font-weight: 600; }
+.t-m { font-family: var(--f-mono); }
+.t-j { font-family: var(--f-body); }
+.fg { fill: var(--fg); } .dim { fill: var(--dim); } .grn { fill: var(--green); }
+.cyn { fill: var(--cyan); } .mag { fill: var(--magenta); } .amb { fill: var(--amber); } .red { fill: var(--red); }
+.flow { stroke-dasharray: 6 8; animation: flow 1.6s linear infinite; }
+.flow-slow { stroke-dasharray: 4 6; animation: flow 2.8s linear infinite; }
+.pulse { animation: pulse 1.8s ease-in-out infinite; }
+.hit { cursor: pointer; }
+.hit:hover rect { filter: brightness(1.25); }
+@keyframes flow { to { stroke-dashoffset: -28; } }
+@keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: .35; } }
+@media (prefers-reduced-motion: reduce) { .flow, .flow-slow, .pulse { animation: none; } }
+</style>
+
+<div class="wrap">
+  <header>
+    <div class="brand"><img src="data:image/png;base64,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" alt="AI CRAFT Kenscafe" width="44" height="44"><div class="eyebrow">Simulation · コックピット・ダッシュボード v0.2 準拠</div></div>
+    <h1 class="dash-only">自動運転 × 外部AI-Copilot 連携シミュレーター</h1>
+    <h1 class="lay-only">車両システム配置図</h1>
+    <p class="lead lay-only">連携シミュレーターと同じシナリオを再生しながら、車のどの部分がいまどんな状態かを真上から見る画面です。上の操作でシナリオの切り替え・割り込みができます。</p>
+    <p class="lead dash-only">コックピット・ダッシュボードの構成（上部パネル＋大型6画面、色の約束、3段階の権限モード、承認ゲート）をそのまま使い、レベル4の自動運転車と、遠隔から運転を支援する外部AI-Copilotの連携を動かして見せます。車両・道路・数値はすべて架空のサンプルです。</p>
+  </header>
+
+  <div class="console" aria-label="シミュレーション操作">
+    <div class="row" id="scnRow"><span class="lbl">Scenario</span></div>
+    <div class="row">
+      <button id="btnPlay" class="go" type="button">❚❚ 一時停止</button>
+      <button id="btnR1" type="button" aria-pressed="true">1×</button>
+      <button id="btnR4" type="button" aria-pressed="false">4×</button>
+      <button id="btnReset" type="button">最初から</button>
+      <span class="clock" id="clk">0:00 / 0:00</span>
+      <div class="bar" aria-hidden="true"><i id="prog"></i></div>
+    </div>
+    <div class="row">
+      <span class="lbl">再生</span>
+      <button id="btnVoice" type="button" aria-pressed="false">🔊 ナレーション オフ</button>
+      <button id="btnAuto" type="button" aria-pressed="true">台本どおりに自動操作</button>
+      <button id="btnCont" type="button" aria-pressed="true">連続再生</button>
+      <span class="sep" aria-hidden="true"></span>
+      <button id="btnLoad" type="button">シナリオを読み込む…</button>
+      <button id="btnCopy" type="button">台本をJSONでコピー</button>
+      <input id="fileIn" type="file" accept=".json,application/json" hidden>
+      <span class="pill" id="bookTag"></span>
+    </div>
+    <div class="cap" id="cap" aria-live="polite"></div>
+    <div class="row">
+      <span class="lbl">乗員</span>
+      <button id="btnTake" class="warn" type="button" disabled>運転を引き継ぐ</button>
+      <span class="sep" aria-hidden="true"></span>
+      <span class="lbl">割り込み</span>
+      <button id="injLink" type="button" aria-pressed="false">通信を切る</button>
+      <button id="injCam" type="button" aria-pressed="false">カメラを汚す</button>
+      <button id="injDebris" type="button">前方に落下物</button>
+    </div>
+  </div>
+
+  <figure class="dash-only">
+    <div class="stage"><div class="sub" id="sub1"></div>
+    <div class="scroller">
+<svg id="sv" viewBox="0 0 1600 912" role="img" aria-labelledby="svgt svgd">
+<title id="svgt">自動運転車と外部AI-Copilotの連携ダッシュボード</title>
+<desc id="svgd">上段に自動運転の設定パネル、その下に6面の大型ディスプレイ。左上は速度と周囲認識、中央上は車両システムと警告、右上は外部AI-Copilot、左下は連携タイムライン、中央下は分散システムの接続図、右下は権限モードとシステム健全性。</desc>
+<defs>
+  <marker id="aw" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" fill="#e9eef4"/></marker>
+  <marker id="ac" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" fill="#45cdea"/></marker>
+  <clipPath id="nd"><rect x="272" y="178" width="238" height="300"/></clipPath>
+  <clipPath id="tl"><rect x="28" y="574" width="484" height="318"/></clipPath>
+  <linearGradient id="glass" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ffffff" stop-opacity=".05"/><stop offset=".35" stop-color="#ffffff" stop-opacity="0"/></linearGradient>
+</defs>
+
+<rect x="0" y="0" width="1600" height="912" fill="#1a212b"/>
+
+<!-- ========== 1: 上部パネル ========== -->
+<rect x="10" y="8" width="1580" height="104" rx="16" fill="#141a22" stroke="#262f3b"/>
+<g id="gMasterL"></g>
+<g>
+  <rect x="250" y="30" width="170" height="60" rx="6" fill="#1d242e" stroke="#262f3b"/>
+  <text x="264" y="52" class="t-m dim" font-size="10">HUD · DRIVER</text>
+  <text x="264" y="74" class="t-m fg" font-size="12" id="hudL">AR · 120 m</text>
+</g>
+<rect x="440" y="20" width="720" height="82" rx="8" fill="#1d242e" stroke="#2e3947"/>
+<g class="t-m" font-size="10">
+  <text x="510" y="36" text-anchor="middle" class="dim">SET SPD km/h</text>
+  <text x="630" y="36" text-anchor="middle" class="dim">GAP</text>
+  <text x="790" y="36" text-anchor="middle" class="dim">LANE</text>
+  <text x="930" y="36" text-anchor="middle" class="dim">AD LEVEL</text>
+</g>
+<g>
+  <rect x="460" y="42" width="100" height="30" rx="3" fill="#03060a"/>
+  <rect x="580" y="42" width="100" height="30" rx="3" fill="#03060a"/>
+  <rect x="720" y="42" width="140" height="30" rx="3" fill="#03060a"/>
+  <rect x="880" y="42" width="100" height="30" rx="3" fill="#03060a"/>
+  <g class="t-m amb" font-size="19" text-anchor="middle">
+    <text x="510" y="64" id="fSpd">100</text>
+    <text x="630" y="64" id="fGap">中</text>
+    <text x="790" y="64" id="fLane" font-size="16">中央</text>
+    <text x="930" y="64" id="fLvl">L4</text>
+  </g>
+  <g fill="#2e3947" stroke="#3b4757"><circle cx="510" cy="88" r="8"/><circle cx="630" cy="88" r="8"/><circle cx="790" cy="88" r="8"/><circle cx="930" cy="88" r="8"/></g>
+  <text x="526" y="92" class="t-m cyn" font-size="10" id="fAiSpd"></text>
+  <text x="806" y="92" class="t-m cyn" font-size="10" id="fAiLane"></text>
+</g>
+<g id="gFcuBtns" class="t-m" font-size="10" text-anchor="middle"></g>
+<g>
+  <rect x="1180" y="30" width="170" height="60" rx="6" fill="#1d242e" stroke="#262f3b"/>
+  <text x="1194" y="52" class="t-m dim" font-size="10">V2X · 5G</text>
+  <text x="1194" y="74" class="t-m fg" font-size="12" id="hudR">38 ms · 3 msg</text>
+</g>
+<g id="gMasterR"></g>
+
+<!-- ========== DISPLAY BEZELS ========== -->
+<g fill="#10161e" stroke="#2e3947">
+  <rect x="20" y="128" width="500" height="420" rx="10"/>
+  <rect x="540" y="128" width="520" height="420" rx="10"/>
+  <rect x="1080" y="128" width="500" height="420" rx="10"/>
+  <rect x="20" y="566" width="500" height="334" rx="10"/>
+  <rect x="540" y="566" width="520" height="334" rx="10"/>
+  <rect x="1080" y="566" width="500" height="334" rx="10"/>
+</g>
+<g fill="#03060a">
+  <rect x="28" y="136" width="484" height="404" rx="4"/>
+  <rect x="548" y="136" width="504" height="404" rx="4"/>
+  <rect x="1088" y="136" width="484" height="404" rx="4"/>
+  <rect x="28" y="574" width="484" height="318" rx="4"/>
+  <rect x="548" y="574" width="504" height="318" rx="4"/>
+  <rect x="1088" y="574" width="484" height="318" rx="4"/>
+</g>
+
+<!-- ========== 2: 主走行表示（速度＋周囲認識） ========== -->
+<line x1="28" y1="180" x2="270" y2="180" stroke="#223041"/>
+<g stroke="#223041"><line x1="76" y1="140" x2="76" y2="180"/><line x1="124" y1="140" x2="124" y2="180"/><line x1="174" y1="140" x2="174" y2="180"/><line x1="222" y1="140" x2="222" y2="180"/></g>
+<g id="gFma" class="t-m" font-size="10" text-anchor="middle"></g>
+<g id="gSpeed"></g>
+<line x1="270" y1="140" x2="270" y2="536" stroke="#223041"/>
+<g id="gNdHead" class="t-m" font-size="10"></g>
+<g clip-path="url(#nd)"><g id="gRoad"></g></g>
+<line x1="272" y1="490" x2="510" y2="490" stroke="#223041"/>
+<g id="gRoute"></g>
+
+<!-- ========== 3: 車両システム／警告 ========== -->
+<g id="gEwd"></g>
+
+<!-- ========== 4: 外部 AI-COPILOT ========== -->
+<g>
+  <text x="1100" y="162" class="t-d cyn" font-size="16">REMOTE AI-COPILOT</text>
+  <text x="1262" y="162" class="t-j dim" font-size="11">外部運転支援センター</text>
+  <text x="1560" y="162" text-anchor="end" class="t-m cyn" font-size="10" id="aiMode">MODE: ADVISORY</text>
+</g>
+<g id="gAi"></g>
+
+<!-- ========== 5: タイムライン ========== -->
+<g>
+  <text x="40" y="598" class="t-d fg" font-size="14">OCCUPANT · AD · AI TIMELINE</text>
+  <text x="262" y="598" class="t-j dim" font-size="11">連携タイムライン</text>
+  <g stroke="#2e3947" stroke-width="1.5"><line x1="120" y1="655" x2="500" y2="655"/><line x1="120" y1="715" x2="500" y2="715"/><line x1="120" y1="775" x2="500" y2="775"/><line x1="120" y1="835" x2="500" y2="835"/></g>
+  <g class="t-m fg" font-size="11"><text x="40" y="659">OCCUPANT</text><text x="40" y="719">ON-BOARD</text><text x="40" y="779">REMOTE AI</text><text x="40" y="839">VEHICLE</text></g>
+  <g class="t-j dim" font-size="9"><text x="40" y="673">乗員</text><text x="40" y="733">車載AD</text><text x="40" y="793">外部AI-Copilot</text><text x="40" y="853">車両システム</text></g>
+  <g class="t-j dim" font-size="9"><path d="M44 876 l5 5 l-5 5 l-5 -5z" fill="#f3b23e"/><text x="54" y="884">注意</text>
+    <circle cx="92" cy="881" r="4" fill="#e9eef4"/><text x="100" y="884">事象</text>
+    <circle cx="138" cy="881" r="4" fill="none" stroke="#e9eef4" stroke-width="1.5"/><text x="146" y="884">承認待ち</text>
+    <line x1="196" y1="881" x2="214" y2="881" stroke="#45cdea"/><text x="220" y="884">情報の受け渡し</text></g>
+</g>
+<g clip-path="url(#tl)"><g id="gTl"></g></g>
+
+<!-- ========== 6: SYSTEM MESH ========== -->
+<g id="gMesh"></g>
+
+<!-- ========== 7: AUTHORITY / HEALTH ========== -->
+<g>
+  <text x="1100" y="598" class="t-d fg" font-size="14">AUTHORITY</text>
+  <text x="1186" y="598" class="t-j dim" font-size="11">権限モード（押して切替）</text>
+</g>
+<g id="gAuth"></g>
+<text x="1100" y="708" class="t-j fg" font-size="15" font-weight="700">最終決定権は常に車内の乗員</text>
+<text x="1100" y="730" class="t-j dim" font-size="11">外部AIは提案・監視・実行補助を担当。車の動きへの指令は、</text>
+<text x="1100" y="748" class="t-j dim" font-size="11">承認ゲートと車載ADの安全確認（2/3 多数決）を通ったものだけ。</text>
+<g id="gHealth"></g>
+
+<!-- glass sheen -->
+<g fill="url(#glass)" pointer-events="none">
+  <rect x="28" y="136" width="484" height="404" rx="4"/><rect x="548" y="136" width="504" height="404" rx="4"/><rect x="1088" y="136" width="484" height="404" rx="4"/>
+  <rect x="28" y="574" width="484" height="318" rx="4"/><rect x="548" y="574" width="504" height="318" rx="4"/><rect x="1088" y="574" width="484" height="318" rx="4"/>
+</g>
+<g id="gTor"></g>
+
+<!-- callouts -->
+<g class="t-m" font-size="13" font-weight="600" text-anchor="middle" pointer-events="none">
+  <g><circle cx="440" cy="20" r="14" fill="#f4f6f8" stroke="#0c1117" stroke-width="3"/><text x="440" y="25" fill="#0c1117">1</text></g>
+  <g><circle cx="20" cy="128" r="14" fill="#f4f6f8" stroke="#0c1117" stroke-width="3"/><text x="20" y="133" fill="#0c1117">2</text></g>
+  <g><circle cx="540" cy="128" r="14" fill="#f4f6f8" stroke="#0c1117" stroke-width="3"/><text x="540" y="133" fill="#0c1117">3</text></g>
+  <g><circle cx="1080" cy="128" r="14" fill="#f4f6f8" stroke="#0c1117" stroke-width="3"/><text x="1080" y="133" fill="#0c1117">4</text></g>
+  <g><circle cx="20" cy="566" r="14" fill="#f4f6f8" stroke="#0c1117" stroke-width="3"/><text x="20" y="571" fill="#0c1117">5</text></g>
+  <g><circle cx="540" cy="566" r="14" fill="#f4f6f8" stroke="#0c1117" stroke-width="3"/><text x="540" y="571" fill="#0c1117">6</text></g>
+  <g><circle cx="1080" cy="566" r="14" fill="#f4f6f8" stroke="#0c1117" stroke-width="3"/><text x="1080" y="571" fill="#0c1117">7</text></g>
+</g>
+</svg>
+    </div></div>
+    <figcaption>シナリオは台本どおりに自動で再生され、乗員の承認・却下・引き継ぎも台本に沿って自動で行われます（「台本どおりに自動操作」を切ると自分で操作できます）。音声は「ナレーション」を押すとオンになり、読み終わるまで進行が待ちます。画面が狭いときは図を横にスクロールできます。AI画面の「承認／却下」、権限モード、MASTER CAUT／WARN（押すと消灯）、運転交代の表示は押して操作できます。Space キーで再生／一時停止。</figcaption>
+  </figure>
+
+  <section id="layout" class="lay-only">
+    <details class="fold"><summary><h2>この図について</h2></summary><div class="foldBody">
+    <p class="lead">機体システム配置図の車版です。センサー・車載AD・駆動・通信がどこにあり、外部AI-Copilotとどうつながっているかを示します。カードの状態表示はシミュレーションに合わせて変わります。</p>
+    </div></details>
+    <div class="stage"><div class="sub" id="sub2"></div>
+    <div class="scroller" style="background:var(--screen);border:1px solid #2e3947">
+<svg id="sv2" viewBox="0 0 1600 900" role="img" aria-labelledby="lt ld" style="min-width:860px">
+<title id="lt">車両システム配置図</title>
+<desc id="ld">前を右に向けた車の上面図。屋根のLiDAR、フロントガラスのカメラ、四隅と前後のレーダー、中央の車載ADコンピュータ3台、床下のバッテリー、前後のモーター、車内ネットワーク、屋根のアンテナから外部AI-Copilotへの5G回線。周囲の番号カードが各機能を説明する。</desc>
+<defs>
+  <pattern id="grid2" width="40" height="40" patternUnits="userSpaceOnUse"><path d="M40 0H0V40" fill="none" stroke="#e9eef4" stroke-opacity=".04"/></pattern>
+  <radialGradient id="aiGlow2"><stop offset="0" stop-color="#45cdea" stop-opacity=".35"/><stop offset="1" stop-color="#45cdea" stop-opacity="0"/></radialGradient>
+</defs>
+<rect width="1600" height="900" fill="#03060a"/>
+<rect width="1600" height="900" fill="url(#grid2)"/>
+<g transform="translate(0 90)">
+<line x1="300" y1="400" x2="1320" y2="400" stroke="#e9eef4" stroke-opacity=".08" stroke-dasharray="2 6"/>
+<!-- wheels -->
+<g fill="#1b2431" stroke="#4a5868" stroke-width="1.5"><rect x="600" y="262" width="64" height="26" rx="6"/><rect x="600" y="512" width="64" height="26" rx="6"/><rect x="968" y="262" width="64" height="26" rx="6"/><rect x="968" y="512" width="64" height="26" rx="6"/></g>
+<!-- body -->
+<path d="M560 290 C530 290 520 310 520 340 L520 460 C520 490 530 510 560 510 L1050 510 C1100 510 1120 480 1120 440 L1120 360 C1120 320 1100 290 1050 290 Z" fill="#121a24" stroke="#4a5868" stroke-width="1.5"/>
+<!-- glass -->
+<path d="M940 304 L990 316 L990 484 L940 496 Z" fill="#0e2a33" stroke="#45cdea" stroke-opacity=".5"/>
+<path d="M560 316 L595 306 L595 494 L560 484 Z" fill="#0e2a33" stroke="#45cdea" stroke-opacity=".35"/>
+<rect x="608" y="312" width="322" height="176" rx="14" fill="none" stroke="#4a5868" stroke-dasharray="3 4"/>
+<text x="616" y="328" class="t-m dim" font-size="8">ROOF</text>
+<!-- forward arrow -->
+<g class="t-m dim" font-size="10"><text x="1142" y="404">FWD</text><path d="M1174 400 h20 m-6 -5 l6 5 l-6 5" stroke="#8796a8" fill="none" stroke-width="1.5"/></g>
+<g id="gLay"></g>
+</g>
+<g id="gLayCards"></g>
+</svg>
+    </div></div>
+    <p class="lead" style="font-size:13px">配置は説明用に単純化したもので、実車の位置とは異なります。</p>
+  </section>
+
+  <details class="dash-only fold">
+    <summary><h2>図の読み方</h2></summary>
+    <div class="foldBody">
+    <ol class="key">
+      <li><div class="badge">1</div><div><b>上部パネル（AD設定）</b><span>設定速度・車間・車線・自動運転レベルの窓と ACC／LKA／AD ボタン。外部AIの提案値（例：AI案 80）は設定値の横に別色で並び、勝手に書き換わらない。</span></div></li>
+      <li><div class="badge">2</div><div><b>主走行表示：速度＋周囲認識</b><span>左は速度計と自動運転の状態。右は上から見た周囲の認識結果。緑が車載ADの走行予定、シアンの点線が外部AIの提案経路。下段はこの先2kmのルート断面。</span></div></li>
+      <li><div class="badge">3</div><div><b>車両システム／警告</b><span>前後モーター出力、バッテリー、ブレーキなど。下段の注意項目に「AIが監視中」「カメラを多数決から除外」など処置の状況が並ぶ。</span></div></li>
+      <li><div class="badge">4</div><div><b>外部AI-Copilot表示</b><span>遠隔の支援センターから届く提案。効果・根拠・信頼度と回答期限を示し、承認／却下は乗員が押す。通信が切れると提案は自動で無効になる。</span></div></li>
+      <li><div class="badge">5</div><div><b>連携タイムライン</b><span>乗員・車載AD・外部AI・車両システムの4レーン。誰が気づき、誰に渡し、何を待っているかが直近2分ぶん流れる。</span></div></li>
+      <li><div class="badge">6</div><div><b>分散システム連携</b><span>カメラ・LiDAR・レーダーの3系統多数決、駆動・制動・操舵などの車載ネットワーク、5G／V2X で結ぶ外部AI。外部AIから車載ADへの線には承認ゲートがある。</span></div></li>
+      <li><div class="badge">7</div><div><b>権限モードと健全性</b><span>手動／アシスト／自動の3段階。アシストでは「AIが提案し、人が承認」。自動では定型操作だけをAIが実行し、中央線のはみ出しなど定型外は必ず人の承認を待つ。</span></div></li>
+    </ol>
+    </div>
+  </details>
+
+  <details class="dash-only fold">
+    <summary><h2>5つのシナリオ</h2></summary>
+    <div class="foldBody">
+    <ol class="key">
+      <li><div class="badge">A</div><div><b>工事規制の車線変更</b><span>外部AIがV2Xで規制を先に知り、早めの車線変更を提案。却下しても車載ADが自分のセンサーで回避する。</span></div></li>
+      <li><div class="badge">B</div><div><b>豪雨でセンサ劣化</b><span>カメラ除外→2/3で継続→ODD逸脱で運転交代要請。15秒以内に引き継がないと路肩に自動停止（MRM）。</span></div></li>
+      <li><div class="badge">C</div><div><b>通信途絶</b><span>5G回線が切れても、車は車載ADだけで渋滞の末尾を見つけて減速する。再接続後に記録を同期。</span></div></li>
+      <li><div class="badge">D</div><div><b>停車トラックの追い越し</b><span>車載ADが判断できない場面で遠隔支援を要求。はみ出し追い越しは定型外なので、AUTOでも人の承認が必要。</span></div></li>
+      <li><div class="badge">E</div><div><b>山道のすれ違い</b><span>見通し外の対向トラックを外部AIが先に知り、手前の待避所で待つ提案。間に合わなければ正対して停止し、承認を得て待避所まで後退する（却下するとV2Vで相手に後退を依頼）。</span></div></li>
+    </ol>
+    </div>
+  </details>
+
+  <details class="dash-only fold">
+    <summary><h2>色の約束</h2></summary>
+    <div class="foldBody">
+    <div class="colors">
+      <span><i style="background:var(--green)"></i>正常・作動中</span>
+      <span><i style="background:var(--cyan)"></i>AIの提案・AIの動作</span>
+      <span><i style="background:var(--magenta)"></i>乗員の目標値</span>
+      <span><i style="background:var(--amber)"></i>注意</span>
+      <span><i style="background:var(--red)"></i>警告</span>
+    </div>
+    </div>
+  </details>
+</div>
+
+<footer class="copy" id="copyright">Copyright &copy; Kenscafe</footer>
+
+<script>
+(function(){
+const $ = id => document.getElementById(id);
+const clamp = (v,a,b) => Math.max(a, Math.min(b, v));
+const LANE_Y = {occ:655, ad:715, ai:775, veh:835};
+const MODES = ['MANUAL','ASSIST','AUTO'];
+let userMode = 'ASSIST';
+let S, SC, running = true, rate = 1, last = performance.now(), slowAcc = 0;
+
+function tx(x,y,cls,size,txt,extra){ return `<text x="${x}" y="${y}" class="${cls}" font-size="${size}" ${extra||''}>${txt}</text>`; }
+
+/* ---------- state helpers ---------- */
+function obj(o){ o.id = S.nid++; o.v0 = o.v; o.len = o.len || (o.kind==='truck'?12:5); S.objs.push(o); return o; }
+function addEv(lane, kind, label, from){ const e = {id:S.nid++, t:S.t, lane, kind, label, from}; S.evs.push(e); return e; }
+function alertOn(id, lvl, text, sub){ const a = S.alerts.find(x=>x.id===id); if(a){ a.lvl=lvl; a.text=text; a.sub=sub||[]; } else { S.alerts.push({id,lvl,text,sub:sub||[]}); S.ack.delete(lvl); } }
+function alertOff(id){ S.alerts = S.alerts.filter(a=>a.id!==id); }
+function memo(id, cls, text, pulse){ const m = S.memos.find(x=>x.id===id); if(m){ m.cls=cls; m.text=text; m.pulse=pulse; } else S.memos.push({id,cls,text,pulse}); if(S.memos.length>5) S.memos.shift(); }
+function memoOff(id){ S.memos = S.memos.filter(m=>m.id!==id); }
+function aiCard(id, lvl, title, sub){ const c = S.aiCards.find(x=>x.id===id); if(c){ c.lvl=lvl; c.title=title; c.sub=sub; c.t=S.t; } else S.aiCards.push({id,lvl,title,sub,t:S.t}); }
+function aiCardOff(id){ S.aiCards = S.aiCards.filter(c=>c.id!==id); }
+function later(dt, fn){ S.timers.push({t:S.t+dt, fn}); }
+function laneName(l){
+  if (SC.road.kind==='urban') return l < .2 ? '自車線' : 'はみ出し';
+  if (SC.road.kind==='mtn') return l < -.5 ? '待避所' : '道路中央';
+  if (l < -.5) return '路肩';
+  return ['左','中央','右'][Math.round(clamp(l,0,2))];
+}
+function requestLC(target, who){ S.lcReq = {target, who, t:S.t}; }
+
+function propose(p){
+  if (!S.link.up) return null;
+  p.id = S.nid++; p.status = 'pending'; p.created = S.t;
+  S.props.push(p);
+  const a = addEv('ai','ai', p.short || '提案');
+  p.ev = addEv('occ','pend','検討中','ai');
+  memo('prop'+p.id, 'fg', 'PENDING OCCUPANT ACK', true);
+  return p;
+}
+function resolve(p, status, by){
+  if (p.status!=='pending') return;
+  p.status = status; p.resolvedAt = S.t;
+  memoOff('prop'+p.id);
+  if (status==='approved' || status==='auto'){
+    p.ev.kind = 'ev'; p.ev.label = status==='auto' ? 'AUTO実行' : '承認';
+    if (status==='auto') p.ev.lane = 'ad';
+    addEv('ad','ev','安全確認 → 実行', status==='auto' ? 'ai' : 'occ');
+    memo('gate','cyn','GATE PASS · AD VERIFY OK');
+    p.apply && p.apply(S);
+  } else if (status==='rejected'){
+    p.ev.kind = 'ev'; p.ev.label = '却下';
+    memo('gate','dim','PROPOSAL REJECTED');
+    p.onReject && p.onReject(S);
+  } else if (status==='expired'){
+    p.ev.kind = 'ev'; p.ev.label = '期限切れ';
+    memo('gate','dim','PROPOSAL EXPIRED');
+    p.onReject && p.onReject(S);
+  } else if (status==='stale'){
+    p.ev.kind = 'ev'; p.ev.label = '無効（通信断）';
+    p.onReject && p.onReject(S);
+  }
+}
+function pending(){ return S.props.filter(p=>p.status==='pending'); }
+
+function linkDown(){
+  if (!S.link.up) return;
+  S.link.up = false; S.link.lostAt = S.t;
+  pending().forEach(p=>resolve(p,'stale'));
+  alertOff('lat');
+  alertOn('link','caut','REMOTE LINK LOST',['· ON-BOARD AD .. CONT','· MRM ........ NOT REQ']);
+  addEv('ai','warn','通信断');
+  addEv('ad','ev','車載ADで自律継続','ai');
+  memo('link','grn','ON-BOARD AD AUTONOMOUS');
+  $('injLink').setAttribute('aria-pressed','true'); $('injLink').textContent = '通信を戻す';
+}
+function linkUp(){
+  if (S.link.up) return;
+  const gap = Math.round(S.t - S.link.lostAt);
+  S.link.up = true; S.link.lat = 120; S.link.latT = 40; S.link.lastSync = S.t;
+  alertOff('link'); memoOff('link');
+  addEv('ai','ai','再接続・同期');
+  aiCard('sync','info',`通信断中の走行ログを同期（${gap}秒）`,'車載ADの判断を照合 ・ 見落としなし ・ 助言を再開');
+  $('injLink').setAttribute('aria-pressed','false'); $('injLink').textContent = '通信を切る';
+}
+function startTOR(){
+  if (S.tor || S.manual || S.mrm) return;
+  S.tor = {start:S.t, dur:15};
+  alertOn('odd','warn','ODD EXIT · TAKEOVER',['· TOR .......... 15 s']);
+  addEv('ad','warn','ODD逸脱 · 交代要請');
+  addEv('occ','pend','交代要請','ad');
+}
+function takeOver(){
+  if (!S.tor || S.tor.done) return;
+  S.tor.done = true; S.manual = true; S.mode = 'MANUAL';
+  S.vSet = Math.min(S.vSet, 70);
+  alertOff('odd');
+  addEv('occ','ev','運転交代 完了','ad');
+  memo('man','fg','MANUAL DRIVE · AI DISPLAY ONLY');
+  aiCard('tor','info','乗員が運転中 ・ AIは表示のみ','雨雲の通過まで約4分 ・ 車間は長めを推奨');
+}
+function startMRM(){
+  if (S.mrm) return;
+  if (S.tor) S.tor.done = true;
+  S.mrm = true; S.hazard = true;
+  alertOn('odd','warn','MRM · MIN RISK STOP',['· HAZARD ........ ON','· SHOULDER ...... L']);
+  addEv('ad','warn','MRM 路肩停止');
+  addEv('veh','ev','ハザード点灯','ad');
+  requestLC(-1,'MRM');
+  aiCard('mrm','caut','最小リスク停止（MRM）を開始','乗員の応答なし ・ 左路肩へ減速停止 ・ 緊急通報を準備');
+  if (S.link.up) addEv('ai','ai','MRMを監視','ad');
+}
+
+/* ---------- road model ---------- */
+function laneClear(target){
+  const L = Math.round(target);
+  for (const o of S.objs){
+    if (Math.round(o.lane)!==L) continue;
+    const r0 = o.s - S.s, r1 = r0 + o.len;
+    if (o.v < 0){ if (r1 > -5 && r0 < 220) return o; }
+    else if (o.v === 0){ if (r1 > -8 && r0 < 30) return o; }
+    else if (r1 > -15 && r0 < 25) return o;
+  }
+  return null;
+}
+
+function step(dt){
+  S.t += dt;
+  while (S.si < SC.script.length && SC.script[S.si][0] <= S.t){ SC.script[S.si][1](S); S.si++; }
+  bookTick();
+  const due = S.timers.filter(tm => tm.t <= S.t); S.timers = S.timers.filter(tm => tm.t > S.t); due.forEach(tm => tm.fn(S));
+  SC.tick && SC.tick(S, dt);
+
+  // proposals
+  for (const p of pending()){
+    const age = S.t - p.created;
+    if (S.mode==='AUTO' && !p.critical && age >= 3) resolve(p,'auto');
+    else if (age > p.timeout) resolve(p,'expired');
+  }
+  // TOR
+  if (S.tor && !S.tor.done){
+    const left = S.tor.dur - (S.t - S.tor.start);
+    alertOn('odd','warn','ODD EXIT · TAKEOVER',[`· TOR .......... ${Math.max(0,Math.ceil(left))} s`]);
+    if (left <= 0) startMRM();
+  }
+  // link
+  S.link.lat += (S.link.latT - S.link.lat) * Math.min(1, dt*0.8);
+  if (S.link.up) S.link.lastSync = S.t - 0.4;
+
+  // sensors → vote
+  const sv = S.sens; const ok = ['cam','lidar','radar'].filter(k => sv[k] >= .3).length;
+  S.vote = ok;
+
+  // longitudinal target
+  let vt = S.vSet;
+  if (ok < 3) vt = Math.min(vt, 70);
+  if (S.passLimit != null) vt = Math.min(vt, S.passLimit);
+  if (S.mrm) vt = 0;
+  const vms = S.v/3.6;
+  const gapK = {短:1.2, 中:1.8, 長:2.6}[S.gap];
+  for (const o of S.objs){
+    if (o.v < 0) continue;
+    if (Math.abs(o.lane - S.lane) > .6) continue;
+    const rel = o.s - S.s;
+    if (rel <= 0 || rel > 160) continue;
+    const safe = gapK*vms + 8;
+    const desired = o.v*3.6 + (rel - safe)*1.2;
+    vt = Math.min(vt, Math.max(0, desired));
+  }
+  if (S.stopAt != null) vt = Math.min(vt, Math.max(0, (S.stopAt - S.s) * 1.4));
+  if (S.revTo != null){
+    const d = S.s - S.revTo;
+    if (d > 0.4){ S.v = -Math.min(10, 2 + d*0.6); S.acc = 0; }
+    else { S.v = 0; S.revTo = null; SC.onRev && SC.onRev(S); }
+  } else {
+    const dvMax = (S.mrm ? 2.5 : 3.2) * dt * 3.6, avMax = 1.6 * dt * 3.6;
+    const dv = clamp(vt - S.v, -dvMax, avMax);
+    S.v = Math.max(0, S.v + dv); S.acc = dv/3.6/dt;
+  }
+
+  // lateral
+  if (S.lcReq){
+    const blk = laneClear(S.lcReq.target);
+    if (!blk || S.lcReq.target === -1){
+      S.laneTarget = S.lcReq.target;
+      if (S.lcReq.target !== -1) addEv('ad','ev', SC.road.kind==='urban' ? (S.lcReq.target>0?'はみ出し開始':'自車線へ復帰') : `車線変更 → ${laneName(S.lcReq.target)}`);
+      memoOff('lchold');
+      S.lcReq = null;
+    } else {
+      memo('lchold','amb', blk.v < 0 ? 'WAIT · ONCOMING TRAFFIC' : 'LC HOLD · TARGET LANE BUSY', true);
+    }
+  }
+  if (S.eWaitArm && S.stopAt != null && Math.abs(S.stopAt - S.s) < 2 && S.v < 2){ S.eWaitArm = false; requestLC(-1,'AD'); addEv('ad','ev','待避所で待機'); }
+  const latV = SC.road.kind==='urban' ? .22 : .35;
+  const dl = clamp(S.laneTarget - S.lane, -latV*dt, latV*dt);
+  S.lane += dl; S.steer = dl/dt * 14;
+  S.s += S.v/3.6*dt;
+
+  // other traffic
+  for (const o of S.objs){
+    if (o.v > 0){
+      let lead = null;
+      for (const q of S.objs){ if (q!==o && q.v>=0 && Math.round(q.lane)===Math.round(o.lane) && q.s > o.s && q.s - o.s < 40){ if(!lead || q.s < lead.s) lead = q; } }
+      o.v = lead ? Math.min(o.v0, Math.max(lead.v, 0)) : o.v0;
+      if (lead && lead.v===0 && lead.s - o.s < 14) o.v = 0;
+    }
+    o.s += o.v * dt;
+  }
+  S.objs = S.objs.filter(o => { const r = o.s - S.s; return o.keep || (r + o.len > -120 && r < 1600); });
+
+  // on-board AD avoidance of blocked lanes (highway)
+  if (SC.road.lanes >= 3 && !S.lcReq && !S.mrm && !S.manual){
+    for (const o of S.objs){
+      if (!o.avoid) continue;
+      const rel = o.s - S.s;
+      if (Math.abs(o.lane - S.laneTarget) < .5 && rel > 0 && rel < 140){
+        const tgt = o.lane > 0 ? o.lane - 1 : o.lane + 1;
+        requestLC(tgt,'AD');
+        alertOn('late','caut','AD LATE AVOIDANCE',['· ON-BOARD AD ... OWN']);
+        addEv('ad','caut','車載AD 直前回避');
+        later(14, ()=>alertOff('late'));
+        break;
+      }
+    }
+  }
+
+  // energy
+  const pw = (1900 * S.acc * (S.v/3.6) + 0.36 * Math.pow(S.v/3.6,3) + 150*(S.v/3.6)) / 1000;
+  S.kw += (pw - S.kw) * Math.min(1, dt*2);
+  S.soc = Math.max(5, S.soc - Math.max(0,S.kw) * dt / 3600 / 0.75);
+  S.brake = 60 + Math.max(0, -S.acc) * 18 + (S.brake ? (S.brake-60)*0.98 : 0) * 0;
+
+  if (S.t >= SC.dur){ S.t = SC.dur; running = false; updatePlay(); }
+}
+
+/* ---------- scenarios ---------- */
+const SCN = [
+{ id:'A', name:'A 工事規制の車線変更', sub:'高速道路 · 3車線', dur:100, road:{lanes:3, kind:'hw'}, v0:100, lane0:1,
+  init(){ obj({lane:0,s:120,v:86/3.6,kind:'car'}); obj({lane:0,s:260,v:86/3.6,kind:'truck'}); obj({lane:2,s:-40,v:112/3.6,kind:'car'}); obj({lane:1,s:-35,v:98/3.6,kind:'car'});
+    S.marks = [{s:1500,label:'工事',cls:'amb'},{s:3400,label:'JCT',cls:'dim'}]; },
+  script:[
+    [11,()=>{ addEv('ai','ai','V2X 工事情報'); aiCard('cone','caut','1.2km先　中央車線 工事規制','道路管理者のV2X配信 ・ 規制長 400m ・ 自車の車線が対象'); memo('v2x','cyn','V2X ROADWORK RCVD'); obj({lane:1,s:S.s+1200,v:0,kind:'cone',len:400,avoid:true}); }],
+    [16,()=>propose({short:'車線変更案', title:'車線変更　中央 → 左車線', effect:'規制手前の合流渋滞を回避 ・ 到着 −1分 ・ 急な減速なし', basis:'V2X工事情報 ／ 後続車の流れ予測 ／ HDマップ', conf:.91, timeout:22, vSet:90, lane:0, apply:()=>{ requestLC(0,'AI'); S.vSet=90; }})],
+    [64,()=>{ aiCardOff('cone'); if (S.laneTarget!==1) propose({short:'復帰案', title:'中央車線へ戻る　設定 100 km/h', effect:'規制区間 通過済み ・ 左車線の合流車を避ける', basis:'車載LiDAR ／ V2X 規制終了地点', conf:.88, timeout:20, vSet:100, lane:1, apply:()=>{ requestLC(1,'AI'); S.vSet=100; }}); }],
+  ]},
+{ id:'B', name:'B 豪雨でセンサ劣化', sub:'運転交代／路肩停止', dur:115, road:{lanes:3, kind:'hw'}, v0:90, lane0:0,
+  init(){ obj({lane:0,s:95,v:85/3.6,kind:'car'}); obj({lane:1,s:40,v:95/3.6,kind:'car'}); obj({lane:2,s:-60,v:105/3.6,kind:'car'});
+    S.marks = [{s:3200,label:'SA',cls:'cyn'}]; },
+  script:[
+    [8,()=>{ aiCard('wx','info','10分以内に強い雨（時間 40mm 相当）','気象レーダー ・ 進行方向 6km 先から'); propose({short:'減速案', title:'設定速度 90 → 70 km/h ・ 車間 長め', effect:'制動距離に +35% の余裕 ・ 到着 +2分', basis:'気象レーダー ／ 路面μ推定 ／ 過去の事故統計', conf:.86, timeout:20, vSet:70, apply:()=>{ S.vSet=70; S.gap='長'; }}); }],
+    [20,()=>{ S.rain=.5; S.sens.cam=.55; alertOn('cam','caut','CAMERA VISIBILITY',['· MONITOR ....... AI']); addEv('veh','caut','カメラ視界低下'); addEv('ai','ai','劣化を検知','veh'); aiCard('cam','caut','前方カメラ 視認性低下 −45%','雨滴の付着 ・ LiDAR／レーダーは正常 ・ 現時点で推奨操作なし'); }],
+    [32,()=>{ S.rain=.7; S.sens.cam=.2; alertOn('cam','caut','CAMERA EXCLUDED',['· VOTE ........... 2/3','· WIPER .......... HI']); addEv('ad','caut','CAM除外 → 2/3'); aiCard('cam','caut','前方カメラを多数決から除外','LiDAR＋レーダーで継続 ・ 速度上限 70km/h'); }],
+    [45,()=>{ S.rain=.95; S.sens.lidar=.4; addEv('veh','caut','LiDAR劣化'); startTOR(); aiCard('cam','caut','LiDAR も劣化 ・ ODD 逸脱','残りはレーダー1系統 ・ 自動運転の継続条件を満たさない');
+       propose({short:'SA退避案', title:'最寄りのSA（3.2km）へ退避', effect:'雨雲の通過を待つ ・ 約10分の停車', basis:'雨雲の移動予測 ／ SA駐車場の空き', conf:.79, timeout:30, apply:()=>{ memo('sa','cyn','ROUTE → SA 3.2 km'); S.marks[0].cls='grn'; S.vSet=Math.min(S.vSet,60); }}); }],
+    [95,()=>{ S.rain=.3; S.sens.cam=.8; S.sens.lidar=.9; alertOff('cam'); addEv('veh','ev','センサ回復'); aiCardOff('cam');
+       if (S.manual) propose({short:'AD復帰案', title:'自動運転（L4）に戻せます', effect:'ODD 内に復帰 ・ センサー3系統 正常', basis:'センサー自己診断 ／ 気象レーダー', conf:.9, timeout:18, critical:true, handback:true, apply:()=>{ S.manual=false; S.mode=userMode; memoOff('man'); addEv('occ','ev','ADへ引き渡し'); }});
+       else if (S.mrm) propose({short:'再発進案', title:'自動運転で走行を再開', effect:'路肩から左車線へ合流 ・ 60 km/h', basis:'センサー自己診断 ／ 後方の交通', conf:.84, timeout:18, critical:true, apply:()=>{ S.mrm=false; S.hazard=false; alertOff('odd'); requestLC(0,'AI'); S.vSet=60; aiCardOff('mrm'); }});
+       else aiCard('rep','info','運行記録を管理センターへ送信','センサー劣化 45秒 ・ 安全停止なし'); }],
+    [100,()=>{ S.rain=0; S.sens.cam=1; S.sens.lidar=1; }],
+  ]},
+{ id:'C', name:'C 通信途絶', sub:'外部AIなしでも安全', dur:95, road:{lanes:3, kind:'hw'}, v0:100, lane0:1,
+  init(){ obj({lane:1,s:80,v:98/3.6,kind:'car'}); obj({lane:0,s:40,v:90/3.6,kind:'car'}); obj({lane:2,s:-20,v:110/3.6,kind:'car'});
+    obj({lane:1,s:1000,v:32/3.6,kind:'car'}); obj({lane:1,s:1030,v:32/3.6,kind:'truck'}); obj({lane:0,s:980,v:30/3.6,kind:'car'}); obj({lane:2,s:1050,v:42/3.6,kind:'car'}); obj({lane:2,s:1095,v:42/3.6,kind:'car'});
+    S.marks = [{s:1000,label:'渋滞',cls:'amb', move:32/3.6}]; },
+  script:[
+    [10,()=>{ aiCard('jam','info','前方 1.0km 渋滞（平均 32 km/h）','プローブ交通情報 ・ V2X ・ 延長 2.4km'); propose({short:'減速案', title:'設定速度 100 → 80 km/h', effect:'渋滞末尾への接近を緩やかに ・ 追突リスク低減', basis:'プローブ交通情報 ／ V2X', conf:.84, timeout:25, vSet:80, apply:()=>{ S.vSet=80; }}); }],
+    [17,()=>{ S.link.latT=190; alertOn('lat','caut','LINK LATENCY',['· 5G ....... 190 ms']); addEv('veh','caut','通信遅延 190ms'); }],
+    [25,()=>linkDown()],
+    [60,()=>{ linkUp(); aiCardOff('jam'); }],
+    [65,()=>propose({short:'車線変更案', title:'右車線へ変更　流れが速い側へ', effect:'通過時間 −40秒 ・ 合流1回', basis:'プローブ交通情報 ／ 車載レーダー', conf:.8, timeout:20, lane:2, apply:()=>requestLC(2,'AI')})],
+  ]},
+{ id:'D', name:'D 停車トラックの追い越し', sub:'市街地 · 遠隔支援', dur:95, road:{lanes:2, kind:'urban'}, v0:40, lane0:0,
+  init(){ S.truck = obj({lane:0,s:210,v:0,kind:'truck',len:12,parked:true}); obj({lane:1,s:300,v:-11,kind:'car'}); obj({lane:1,s:520,v:-10,kind:'car'});
+    S.marks = [{s:210,label:'停車車両',cls:'amb'},{s:640,label:'交差点',cls:'dim'}]; },
+  tick(S){
+    const tr = S.truck; if (!tr) return;
+    const rel = tr.s - S.s;
+    if (!S.dStop && S.v < 1 && rel < 25 && rel > 0){
+      S.dStop = true;
+      addEv('ad','caut','自力で判断不可');
+      alertOn('stuck','caut','PATH BLOCKED',['· REMOTE ASSIST .. REQ']);
+      later(1.5, ()=>{ if (S.link.up){ addEv('ai','ai','遠隔支援を受付','ad'); aiCard('st','info','停車理由：荷下ろし（推定 5分）','交差点カメラ(V2I) ・ ハザード点灯 ・ 運転者 不在'); } });
+      later(5, ()=>{ obj({lane:1,s:S.s+175,v:-11,kind:'car'}); obj({lane:1,s:S.s+560,v:-10,kind:'car'});
+        propose({short:'はみ出し案', title:'対向車線へはみ出して追い越し', effect:'はみ出し 18m ・ 10 km/h ・ 対向車の通過後に開始', basis:'車載LiDAR点群 ／ 交差点カメラ(V2I) ／ 停車理由の推定', conf:.82, timeout:25, critical:true, lane:.85,
+          apply:()=>{ S.passing=true; S.passLimit=12; requestLC(.85,'AI'); },
+          onReject:()=>{ aiCard('st','info','待機を継続','トラックの発進を待ちます ・ 代替ルート +2分'); later(10, ()=>{ if (S.truck && !S.passing){ S.truck.v = 6; S.truck.v0 = 6; S.truck.parked=false; addEv('veh','ev','トラック発進'); alertOff('stuck'); aiCard('st','info','停車車両が発進','通常走行に戻ります'); S.truck = null; } }); } }); });
+    }
+    if (S.passing && rel + tr.len < -7){ S.passing = false; S.passLimit = null; requestLC(0,'AD'); alertOff('stuck'); aiCardOff('st'); S.truck = null; addEv('ai','ai','完了を確認','ad'); }
+  },
+  script:[[4,()=>{ addEv('ad','ev','停車車両を検知'); memo('pv','amb','PARKED VEHICLE AHEAD'); }]]},
+{ id:'E', name:'E 山道のすれ違い', sub:'山間部 · 待避所／後退', dur:128, road:{lanes:2, kind:'mtn'}, v0:30, lane0:.5,
+  init(){ S.P = 150; S.mt = obj({lane:1, s:440, v:-6.5, kind:'truck', len:12, blind:true, keep:true});
+    S.marks = [{s:150,label:'待避所',cls:'cyn',pull:25},{s:330,label:'カーブ',cls:'dim'}]; },
+  tick(S){
+    const tr = S.mt; if (!tr) return;
+    const gap = tr.s - S.s;
+    if (gap < 80 && !S.eSeen){ S.eSeen = true; addEv('ad','ev','対向トラックを検知'); memo('mt','amb','ONCOMING TRUCK · NO PASSING'); }
+    const inPull = S.lane < -.7;
+    // truck behaviour: stop face-to-face, resume when ego is in the pull-out
+    if (!inPull && gap > 0 && gap < 22 && tr.v < 0){ tr.v = 0; tr.v0 = 0; tr.waiting = true; addEv('veh','caut','対向車と正対'); }
+    if (inPull && tr.waiting && !tr.backing){ tr.waiting = false; tr.v = -6.5; tr.v0 = -6.5; addEv('ai','ai','対向車へ通過OK','ad'); }
+    // ego stops by itself when it meets the truck outside the pull-out
+    if (S.eSeen && !inPull && !S.ePlan && !S.eStop && gap > 0){
+      S.eStop = true; S.stopAt = S.s + Math.max(3, gap - 32);
+      addEv('ad','caut','すれ違い不可 · 停止');
+      alertOn('pass','caut','NO PASSING ROOM',['· REMOTE ASSIST .. REQ']);
+    }
+    if (S.eStop && !S.eAsked && S.v < .5 && Math.abs(S.v) < .5 && S.revTo == null){
+      S.eAsked = true;
+      if (S.link.up){ addEv('ai','ai','遠隔支援を受付','ad'); later(2.5, ()=>{
+        const back = Math.round(S.s - (S.P + 12));
+        propose({short:'後退案', title:`待避所まで ${back}m 後退`, effect:'後方 10 km/h 以下 ・ 後続車なし ・ 対向トラックは停止中', basis:'後方カメラ／超音波 ／ 道路形状データ ／ 対向車とのV2V', conf:.87, timeout:25, critical:true,
+          apply:()=>{ S.stopAt = null; S.revTo = S.P + 12; alertOn('pass','caut','REVERSING TO PULL-OUT',['· REAR CAM ....... ON']); },
+          onReject:()=>{ aiCard('mt','info','対向トラックへ後退を依頼（V2V）','トラック側の後方に待避所 40m ・ 運転者が了承'); later(3, ()=>{ if (!S.mt) return; S.mt.backing = true; S.mt.v = 4; S.mt.v0 = 4; addEv('veh','ev','対向トラック後退'); later(12, ()=>{ S.objs = S.objs.filter(o=>o!==S.mt); S.mt = null; S.stopAt = null; S.eStop = false; alertOff('pass'); memoOff('mt'); addEv('ad','ev','走行再開'); aiCard('mt','info','対向トラックが待避所へ退避','すれ違い完了 ・ 走行を再開'); }); }); } }); }); }
+    }
+    // after the truck has passed the ego (which is in the pull-out) → resume
+    if (S.mt && tr.s + tr.len < S.s - 4 && inPull){
+      S.objs = S.objs.filter(o=>o!==tr); S.mt = null; S.stopAt = null; S.eStop = false;
+      requestLC(.5,'AD'); alertOff('pass'); memoOff('mt'); addEv('ad','ev','すれ違い完了 · 再発進'); if (S.link.up) aiCard('mt','info','すれ違い完了','待ち時間を運行記録に追加 ・ 後続の車両にも共有');
+    }
+  },
+  onRev(S){ S.stopAt = S.s; requestLC(-1,'AD'); addEv('ad','ev','待避所に到着'); },
+  script:[
+    [4,()=>{ S.aiKnows = true; addEv('ai','ai','見通し外の対向車'); aiCard('mt','caut','カーブの先に対向の大型トラック','路側センサー(V2I) ・ 約290m先 ・ 25 km/h で下り'); }],
+    [14,()=>propose({short:'待避案', title:'手前の待避所に寄せて待つ', effect:'すれ違えない区間 300m を回避 ・ 待ち時間 約25秒', basis:'路側センサー(V2I) ／ 対向車の位置(プローブ) ／ 幅員データ 3.6m', conf:.9, timeout:9, apply:()=>{ S.ePlan = true; S.stopAt = S.P + 12; S.eWaitArm = true; }})],
+  ]},
+];
+
+
+/* ---------- 台本（ナレーションと乗員の操作） ---------- */
+const BOOKS = {
+ A:{ title:'A 工事規制の車線変更', narration:[
+   {at:0, text:'高速道路をレベル4の自動運転で走っています。外部のAI-Copilotは、遠隔から車を見守り、助言だけを出します。'},
+   {at:11, text:'外部AIが道路管理者のV2X情報から、1.2キロ先の中央車線で工事規制が始まることを、先に知りました。'},
+   {on:'車線変更案', after:0, text:'左車線への車線変更を提案します。効果と根拠、信頼度が一緒に届きます。決めるのは乗員です。'},
+   {on:'車線変更案', after:7, auto:true, text:'乗員が承認しました。車載ADが左車線の安全を確かめてから、車線を変えます。'},
+   {at:38, text:'承認しなかった場合でも、車載ADは自分のセンサーで規制を見つけて避けます。外部AIは、早めに、滑らかにするための助言役です。'},
+   {on:'復帰案', after:0, text:'規制区間を抜けました。外部AIは、元の車線と速度に戻すことを提案します。'},
+   {on:'復帰案', after:6, auto:true, text:'乗員が承認し、中央車線へ戻ります。'},
+   {at:86, text:'外部AIの提案は、承認ゲートと車載ADの安全確認を通ってはじめて、車の動きになります。'}],
+   actions:[{on:'車線変更案', after:7, do:'approve'},{on:'復帰案', after:6, do:'approve'}]},
+ B:{ title:'B 豪雨でセンサ劣化', narration:[
+   {at:0, text:'雨雲が近づく高速道路を、レベル4の自動運転で走っています。'},
+   {on:'減速案', after:0, text:'外部AIが気象データから強い雨を予測し、速度を下げて車間をあける提案を出しました。'},
+   {on:'減速案', after:7, auto:true, text:'乗員が承認しました。速度を70キロに下げ、車間を長めにとります。'},
+   {at:21, text:'雨でカメラの見え方が落ちてきました。車載ADは、カメラ、ライダー、レーダーの3つを多数決で使います。'},
+   {at:32, text:'カメラを判断から外し、ライダーとレーダーの2系統で走り続けます。'},
+   {at:45, text:'ライダーも劣化し、自動運転の想定条件を外れました。車は乗員に運転の交代を求めます。15秒以内に応答がないと、車は自分で路肩に止まります。'},
+   {at:56, auto:true, text:'乗員がハンドルを握り、運転を引き継ぎました。外部AIは表示だけに切り替わります。'},
+   {at:95, text:'雨が弱まり、センサーが回復しました。外部AIは、自動運転に戻せることを知らせます。'},
+   {on:'AD復帰案', after:6, auto:true, text:'乗員が承認し、自動運転に戻りました。'}],
+   actions:[{on:'減速案', after:7, do:'approve'},{at:56, do:'take'},{on:'AD復帰案', after:6, do:'approve'}]},
+ C:{ title:'C 通信途絶', narration:[
+   {at:0, text:'高速道路をレベル4で走っています。外部AI-Copilotとは、5G回線でつながっています。'},
+   {at:10, text:'外部AIが前方の渋滞をつかみ、早めの減速を提案します。'},
+   {at:17, text:'回線の遅延が増えはじめました。乗員はまだ、提案に答えていません。'},
+   {at:25, text:'回線が切れました。外部AIの提案は自動で無効になり、車は車載ADだけで走り続けます。'},
+   {at:38, text:'渋滞の末尾は、車載センサーが自分で見つけて減速します。安全は外部AIに頼っていません。'},
+   {at:60, text:'回線が戻りました。外部AIは、切れていた間の記録を同期して、助言を再開します。'},
+   {on:'車線変更案', after:0, text:'流れの速い右車線への変更を提案します。'},
+   {on:'車線変更案', after:6, auto:true, text:'乗員が承認し、右車線へ移ります。'}],
+   actions:[{on:'車線変更案', after:6, do:'approve'}]},
+ D:{ title:'D 停車トラックの追い越し', narration:[
+   {at:0, text:'市街地を自動運転で走っています。前方の車線に、荷下ろし中のトラックが止まっています。'},
+   {at:24, text:'追い越すには中央線をはみ出す必要があります。車載ADはこれを自分だけでは判断せず、止まって外部に支援を求めます。'},
+   {on:'はみ出し案', after:0, text:'外部AIは交差点のカメラなども使い、安全なはみ出し方を提案します。定型外の操作なので、AUTOでも必ず人の承認が要ります。'},
+   {on:'はみ出し案', after:9, auto:true, text:'乗員が承認しました。それでも、動き出すのは、車載ADが対向車の通過を確かめてからです。'},
+   {ev:'完了を確認', text:'追い越しが終わり、元の車線に戻りました。外部AIも完了を確認しています。'}],
+   actions:[{on:'はみ出し案', after:9, do:'approve'}]},
+ E:{ title:'E 山道のすれ違い', narration:[
+   {at:0, text:'山あいの細い道を、自動運転で走っています。この先はカーブが続き、見通しは80メートルほどです。'},
+   {at:5, text:'外部AIは、カーブの先の路側センサーから、大型トラックが下ってくることを先に知りました。車のセンサーには、まだ見えていません。'},
+   {on:'待避案', after:0, text:'この道幅ではすれ違えないため、AIは手前の待避所で待つことを提案します。'},
+   {on:'待避案', after:6, auto:true, text:'今回は乗員が様子を見ることにして、提案を見送りました。'},
+   {ev:'すれ違い不可 · 停止', text:'カーブの先から対向トラックが現れました。すれ違えないので、車載ADは自分で止まり、外部に支援を求めます。'},
+   {on:'後退案', after:0, text:'外部AIは、待避所まで後退することを提案します。後退は定型外の操作なので、AUTOでも人の承認が必要です。'},
+   {on:'後退案', after:9, auto:true, text:'乗員が承認しました。後方カメラを見ながら、ゆっくり待避所まで戻ります。'},
+   {ev:'すれ違い完了 · 再発進', text:'トラックが通り過ぎました。車は道路の中央に戻り、走行を再開します。'},
+   {ev:'走行再開', text:'トラックが後ろの待避所に下がってくれました。走行を再開します。'}],
+   actions:[{on:'待避案', after:6, do:'reject'},{on:'後退案', after:9, do:'approve'}]},
+};
+const LOADED = {};
+let autoPlay = true, contPlay = true, voiceOn = false, holdSim = false, speaking = false, sayQ = [], nextTimer = null, jaVoice = null;
+function bookFor(sc){ return LOADED[sc.id] || BOOKS[sc.id]; }
+function showCap(t){ $('cap').textContent = t; const a = $('sub1'), b = $('sub2'); if (a) a.textContent = t; if (b) b.textContent = t; }
+function pickVoice(){ try { const vs = speechSynthesis.getVoices().filter(v => /^ja/i.test(v.lang)); jaVoice = vs.find(v=>/Google|Kyoko|Nanami|Haruka|O-ren/i.test(v.name)) || vs[0] || null; } catch(e){} }
+try { speechSynthesis.onvoiceschanged = pickVoice; pickVoice(); } catch(e){}
+function speak(t, cb){
+  let done = false; const fin = () => { if (done) return; done = true; cb(); };
+  try {
+    const u = new SpeechSynthesisUtterance(t); u.lang = 'ja-JP'; u.rate = 1.1; if (jaVoice) u.voice = jaVoice;
+    u.onend = fin; u.onerror = fin; speechSynthesis.speak(u);
+  } catch(e){ fin(); return; }
+  setTimeout(fin, (t.length * 0.17 + 2.5) * 1000);
+}
+function say(t){ if (!voiceOn){ showCap(t); return; } sayQ.push(t); pump(); }
+function pump(){
+  if (speaking){ if (sayQ.length) holdSim = true; return; }
+  const t = sayQ.shift(); if (t == null){ holdSim = false; return; }
+  showCap(t); speaking = true; holdSim = false;
+  speak(t, () => { speaking = false; pump(); });
+}
+function stopVoice(){ sayQ = []; speaking = false; holdSim = false; try { speechSynthesis.cancel(); } catch(e){} }
+function bookTick(){
+  for (const n of S.nq){
+    if (n.done || (n.auto && !autoPlay)) continue;
+    let due = false;
+    if (n.at != null) due = S.t >= n.at;
+    else if (n.on){ const p = S.props.find(q => q.short === n.on); due = !!p && S.t - p.created >= (n.after||0); }
+    else if (n.ev) due = S.evs.some(e => e.label === n.ev);
+    if (due){ n.done = true; say(n.text); }
+  }
+  if (!autoPlay) return;
+  for (const a of S.aq){
+    if (a.done) continue;
+    if (a.at != null){ if (S.t < a.at) continue; }
+    else if (a.on){ const p = S.props.find(q => q.short === a.on && q.status === 'pending'); if (!p || S.t - p.created < (a.after||0)) continue; }
+    a.done = true;
+    if (a.do === 'approve' || a.do === 'reject'){ const p = S.props.find(q => q.short === a.on && q.status === 'pending'); if (p) resolve(p, a.do === 'approve' ? 'approved' : 'rejected'); }
+    else if (a.do === 'take') takeOver();
+    else if (a.do === 'mode' && MODES.includes(a.mode)){ S.mode = a.mode; addEv('occ','ev',`${a.mode} に切替`); }
+  }
+}
+function validateBook(j){
+  if (!j || typeof j !== 'object') return 'JSON の中身がオブジェクトではありません';
+  if (!SCN.some(sc => sc.id === j.base)) return `"base" は ${SCN.map(s=>s.id).join(' / ')} のどれかにしてください`;
+  if (!Array.isArray(j.narration)) return '"narration"（ナレーションの配列）がありません';
+  for (const [i,n] of j.narration.entries()){
+    if (typeof n.text !== 'string') return `narration[${i}] に "text" がありません`;
+    if (n.at == null && !n.on && !n.ev) return `narration[${i}] に "at"（秒）・"on"（提案名）・"ev"（事象名）のどれかを書いてください`;
+  }
+  if (j.actions != null && !Array.isArray(j.actions)) return '"actions" は配列にしてください';
+  for (const [i,a] of (j.actions||[]).entries()) if (!['approve','reject','take','mode'].includes(a.do)) return `actions[${i}] の "do" は approve / reject / take / mode のどれかです`;
+  return null;
+}
+
+function reset(sc){
+  SC = sc;
+  S = {t:0, si:0, ci:0, v:sc.v0, vSet:sc.v0, gap:'中', lane:sc.lane0, laneTarget:sc.lane0, lcReq:null, s:0, acc:0, kw:20, soc:78, steer:0, brake:60,
+       sens:{cam:1,lidar:1,radar:1}, vote:3, rain:0, link:{up:true, lat:38, latT:38, lostAt:null, lastSync:0},
+       objs:[], props:[], alerts:[], memos:[], aiCards:[], evs:[], marks:[], timers:[], tor:null, mrm:false, manual:false, hazard:false, passLimit:null,
+       ack:new Set(), nid:1, mode:userMode};
+  sc.init();
+  if (nextTimer){ clearTimeout(nextTimer); nextTimer = null; }
+  stopVoice(); showCap('');
+  const bk = bookFor(sc);
+  S.nq = bk.narration.map(n => ({...n, done:false}));
+  S.aq = (bk.actions || []).map(a => ({...a, done:false}));
+  $('bookTag').textContent = LOADED[sc.id] ? `読み込んだ台本：${bk.title || sc.name}` : '';
+  $('injLink').setAttribute('aria-pressed','false'); $('injLink').textContent = '通信を切る';
+  $('injCam').setAttribute('aria-pressed','false');
+  document.querySelectorAll('.scn').forEach(b => b.setAttribute('aria-pressed', b.dataset.id===sc.id ? 'true':'false'));
+  running = true; updatePlay();
+  step(0.001); renderAll();
+}
+
+/* ---------- render ---------- */
+function lit(lvl){ return S.alerts.some(a=>a.lvl===lvl) && !S.ack.has(lvl); }
+function renderMaster(){
+  const w = lit('warn'), c = lit('caut');
+  const box = (x, kind, on) => {
+    const red = kind==='warn';
+    const fill = on ? (red?'#5a1616':'#5a4210') : (red?'#2a1414':'#2b2210');
+    const stroke = on ? (red?'#f0524f':'#f3b23e') : (red?'#5a2424':'#4a3a1a');
+    const cls = red?'red':'amb'; const op = on?'1':'.45';
+    return `<g class="hit" data-act="ack" data-lvl="${kind}"><rect x="${x}" y="30" width="86" height="60" rx="6" fill="${fill}" stroke="${stroke}" ${on?'class="pulse"':''}/>
+      <text x="${x+43}" y="56" text-anchor="middle" class="t-m ${cls}" font-size="11" opacity="${op}">MASTER</text>
+      <text x="${x+43}" y="72" text-anchor="middle" class="t-m ${cls}" font-size="11" opacity="${op}">${red?'WARN':'CAUT'}</text></g>`;
+  };
+  $('gMasterL').innerHTML = box(50,'warn',w) + box(146,'caut',c);
+  $('gMasterR').innerHTML = box(1368,'caut',c) + box(1464,'warn',w);
+}
+function renderFcu(){
+  $('fSpd').textContent = Math.round(S.vSet);
+  $('fGap').textContent = S.gap;
+  $('fLane').textContent = laneName(S.laneTarget);
+  $('fLvl').textContent = S.manual ? 'L0' : (S.mrm ? 'MRM' : 'L4');
+  const p = pending()[0];
+  $('fAiSpd').textContent = p && p.vSet ? `AI案 ${p.vSet}` : '';
+  $('fAiLane').textContent = p && p.lane != null ? `AI案 ${laneName(p.lane)}` : '';
+  const ad = !S.manual;
+  const btn = (x,y,w,label,on) => `<rect x="${x}" y="${y}" width="${w}" height="28" rx="4" fill="#262f3b"/>${on?`<rect x="${x+8}" y="${y+4}" width="${w-16}" height="3" fill="#48dd8a"/>`:''}<text x="${x+w/2}" y="${y+21}" class="${on?'fg':'dim'}">${label}</text>`;
+  let st, cls, fill, stroke;
+  if (!S.link.up){ st='REMOTE AI · LINK LOST'; cls='amb'; fill='#2b2210'; stroke='#f3b23e'; }
+  else if (S.mode==='MANUAL'){ st='REMOTE AI · DISPLAY'; cls='dim'; fill='#1d242e'; stroke='#4a5868'; }
+  else if (S.mode==='AUTO'){ st='REMOTE AI · AUTO'; cls='cyn'; fill='#0e2a33'; stroke='#45cdea'; }
+  else { st='REMOTE AI · ADVISORY'; cls='cyn'; fill='#0e2a33'; stroke='#45cdea'; }
+  $('gFcuBtns').innerHTML = btn(1000,30,44,'AD',ad && !S.mrm) + btn(1052,30,44,'ACC',ad) + btn(1104,30,44,'LKA',ad) +
+    `<rect x="1000" y="64" width="148" height="28" rx="4" fill="${fill}" stroke="${stroke}"/><text x="1074" y="83" class="${cls}">${st}</text>`;
+  $('hudL').textContent = `AR · ${Math.round(120*Math.min(1, S.sens.cam+.3))} m${S.rain>.2?' · 雨':''}`;
+  $('hudR').textContent = S.link.up ? `${Math.round(S.link.lat)} ms · ${2+S.props.length} msg` : 'NO LINK';
+  $('hudR').setAttribute('class', 't-m ' + (S.link.up ? (S.link.lat>120?'amb':'fg') : 'amb'));
+}
+function renderFma(){
+  const items = [
+    [52, S.manual?'MANUAL':'ACC', S.manual?'fg':'grn'],
+    [100, S.manual?'—':'LKA', S.manual?'dim':'grn'],
+    [149, S.mrm?'MRM':(S.manual?'—':'AD L4'), S.mrm?'red':(S.manual?'dim':'grn')],
+    [198, S.lcReq?'LC ARM':'ROUTE', S.lcReq?'cyn':'grn'],
+    [246, S.link.up?'REMOTE':'LOCAL', S.link.up?'fg':'amb'],
+  ];
+  const p = pending()[0];
+  $('gFma').innerHTML = items.map(i=>`<text x="${i[0]}" y="156" class="${i[2]}">${i[1]}</text>`).join('') +
+    (p ? `<text x="149" y="172" class="cyn">AI ADV</text>` : '') + `<text x="246" y="172" class="${S.link.up?'fg':'amb'}">${S.link.up?'5G':'NO LINK'}</text>`;
+}
+function ang(v){ return (150 + 240*clamp(v,0,160)/160) * Math.PI/180; }
+function pt(cx,cy,r,a){ return [cx + r*Math.cos(a), cy + r*Math.sin(a)]; }
+function arc(cx,cy,r,a0,a1){ const [x0,y0]=pt(cx,cy,r,a0), [x1,y1]=pt(cx,cy,r,a1); const large = (a1-a0) > Math.PI ? 1:0; return `M${x0.toFixed(1)} ${y0.toFixed(1)} A${r} ${r} 0 ${large} 1 ${x1.toFixed(1)} ${y1.toFixed(1)}`; }
+function renderSpeed(){
+  const cx=149, cy=300, r=84;
+  let h = `<path d="${arc(cx,cy,r,ang(0),ang(160))}" fill="none" stroke="#1b2431" stroke-width="10"/>`;
+  if (S.v > .5) h += `<path d="${arc(cx,cy,r,ang(0),ang(S.v))}" fill="none" stroke="${S.mrm?'#f0524f':'#48dd8a'}" stroke-width="10"/>`;
+  for (let v=0; v<=160; v+=20){ const a=ang(v); const [x0,y0]=pt(cx,cy,r-10,a), [x1,y1]=pt(cx,cy,r-18,a), [lx,ly]=pt(cx,cy,r-30,a);
+    h += `<line x1="${x0}" y1="${y0}" x2="${x1}" y2="${y1}" stroke="#e9eef4" stroke-width="1.2"/><text x="${lx}" y="${ly+3}" text-anchor="middle" class="t-m dim" font-size="9">${v}</text>`; }
+  const [sx,sy] = pt(cx,cy,r+9,ang(S.vSet));
+  h += `<circle cx="${sx}" cy="${sy}" r="5" fill="#e061d2"/>`;
+  const p = pending().find(q=>q.vSet);
+  if (p){ const [ax,ay] = pt(cx,cy,r+9,ang(p.vSet)); h += `<circle cx="${ax}" cy="${ay}" r="5" fill="none" stroke="#45cdea" stroke-width="2"/><text x="${ax+(ax<cx?-8:8)}" y="${ay-6}" text-anchor="${ax<cx?'end':'start'}" class="t-m cyn" font-size="9">AI ${p.vSet}</text>`; }
+  h += `<text x="${cx}" y="${cy+8}" text-anchor="middle" class="t-m grn" font-size="40" font-weight="600">${Math.round(Math.abs(S.v))}</text>`;
+  h += `<text x="${cx}" y="${cy+28}" text-anchor="middle" class="t-m ${S.v<-0.1?'amb':'dim'}" font-size="11">${S.v<-0.1?'km/h · 後退':'km/h'}</text>`;
+  h += `<text x="${cx}" y="${cy+48}" text-anchor="middle" class="t-m mag" font-size="11">SET ${Math.round(S.vSet)}</text>`;
+  // lower strip
+  const accW = clamp(S.acc,0,2)/2*80, brkW = clamp(-S.acc,0,3.5)/3.5*80;
+  h += `<g class="t-m" font-size="10">
+    <text x="40" y="420" class="dim">GEAR</text><text x="80" y="420" class="${S.v<-0.1?'amb':'grn'}">${S.v<-0.1?'R':'D'}</text>
+    <text x="110" y="420" class="dim">舵角</text><text x="140" y="420" class="grn">${(S.steer>=0?'+':'')+S.steer.toFixed(1)}°</text>
+    <text x="40" y="442" class="dim">ACC</text><rect x="80" y="434" width="80" height="8" rx="2" fill="#1b2431"/><rect x="80" y="434" width="${accW}" height="8" rx="2" fill="#48dd8a"/>
+    <text x="40" y="460" class="dim">BRK</text><rect x="80" y="452" width="80" height="8" rx="2" fill="#1b2431"/><rect x="80" y="452" width="${brkW}" height="8" rx="2" fill="${brkW>50?'#f3b23e':'#48dd8a'}"/>
+    <text x="40" y="482" class="${S.hazard?'amb pulse':'dim'}">${S.hazard?'▲ HAZARD':'HAZARD OFF'}</text>
+    <text x="40" y="500" class="${S.manual?'fg':(S.mrm?'red':'grn')}">${S.manual?'乗員が運転中':(S.mrm?'最小リスク停止中':(S.v<-0.1?'自動で後退中 · 後方カメラ':'自動運転中 · 乗員は監視不要'))}</text>
+    <text x="40" y="520" class="dim">主走行表示 · 速度／AD状態</text></g>`;
+  $('gSpeed').innerHTML = h;
+}
+function laneGeom(){
+  if (SC.road.kind==='urban') return {w:60, x0:331, n:2, cx:l=>331+30+60*l};
+  if (SC.road.kind==='mtn') return {w:36, x0:355, n:2, cx:l=>355+18+36*l};
+  return {w:50, x0:316, n:3, cx:l=> l < -.5 ? 316-14 + (l+1)*0 : 316+25+50*l};
+}
+function laneX(g,l){ if (SC.road.kind==='hw' && l < 0) return 316+25 + 50*l*(39/50); return g.cx(l); }
+function carShape(x,y,kind,fill,stroke,flip,dash){
+  const w = kind==='truck'?26:20, hgt = kind==='truck'?40:32;
+  const y0 = y - hgt/2;
+  let s = `<rect x="${x-w/2}" y="${y0}" width="${w}" height="${hgt}" rx="${kind==='truck'?3:6}" fill="${fill}" stroke="${stroke}" stroke-width="1.5" ${dash?'stroke-dasharray="3 2"':''}/>`;
+  const wy = flip ? y0+hgt-10 : y0+5;
+  s += `<rect x="${x-w/2+3}" y="${wy}" width="${w-6}" height="5" rx="1" fill="${stroke}" opacity=".5"/>`;
+  return s;
+}
+function renderRoad(){
+  const g = laneGeom(), PX = 2.2, EY = 440;
+  const yOf = rel => EY - rel*PX;
+  let h = '';
+  const urban = SC.road.kind==='urban', mtn = SC.road.kind==='mtn';
+  const roadL = g.x0, roadR = g.x0 + g.w*g.n;
+  h += `<rect x="272" y="178" width="238" height="300" fill="#05090e"/>`;
+  if (urban){ h += `<rect x="${roadL-22}" y="178" width="20" height="300" fill="#121a24"/><rect x="${roadR+2}" y="178" width="20" height="300" fill="#121a24"/>`; }
+  else if (mtn){
+    h += `<rect x="${roadR}" y="178" width="${510-roadR}" height="300" fill="#1c1712"/>`;
+    for (let i=0;i<12;i++){ const y = 178 + ((i*30 + S.s*PX) % 330) - 15; h += `<path d="M${roadR+4} ${y} l14 10 l10 -6 l20 14" fill="none" stroke="#3a2f24" stroke-width="2"/>`; }
+    h += `<text x="${roadR+8}" y="470" class="t-j dim" font-size="9">岩壁</text><text x="276" y="470" class="t-j dim" font-size="9">谷側</text>`;
+    for (const m of S.marks){ if (!m.pull) continue; const r = m.s - S.s; const y1 = yOf(r), y2 = yOf(r + m.pull);
+      h += `<path d="M${roadL} ${y1+14} L${roadL-38} ${y1-6} L${roadL-38} ${y2+6} L${roadL} ${y2-14}z" fill="#16222e" stroke="#45cdea" stroke-opacity=".8" stroke-dasharray="4 3"/><text x="${roadL-36}" y="${y1-10}" class="t-j cyn" font-size="9">待避所</text>`; }
+  }
+  else { h += `<rect x="${roadL-24}" y="178" width="24" height="300" fill="#0b1118"/>`; }
+  h += `<rect x="${roadL}" y="178" width="${roadR-roadL}" height="300" fill="#0d141c"/>`;
+  h += `<line x1="${roadL}" y1="178" x2="${roadL}" y2="478" stroke="#8796a8" stroke-width="2"/><line x1="${roadR}" y1="178" x2="${roadR}" y2="478" stroke="#8796a8" stroke-width="2"/>`;
+  const off = ((S.s*PX) % 40);
+  if (!mtn) for (let i=1;i<g.n;i++){ const x = roadL + g.w*i; h += `<line x1="${x}" y1="${178-40+off}" x2="${x}" y2="480" stroke="${urban?'#e9eef4':'#8796a8'}" stroke-width="2" stroke-dasharray="20 20"/>`; }
+  if (urban) h += `<text x="${roadR-6}" y="194" text-anchor="end" class="t-j dim" font-size="9">対向車線</text>`;
+  if (mtn){ h += `<line x1="${roadL-2}" y1="178" x2="${roadL-2}" y2="478" stroke="#e9eef4" stroke-width="1.5" stroke-dasharray="2 6"/>`; }
+  // sensor range ring
+  const rng = 150 * Math.min(1, Math.max(S.sens.lidar, S.sens.radar*0.7) * (S.rain>.6?0.85:1));
+  const ex = laneX(g, S.lane);
+  const degraded = S.vote < 3;
+  h += `<path d="M${ex-rng*PX*.55} ${EY} A${rng*PX*.55} ${rng*PX} 0 0 1 ${ex+rng*PX*.55} ${EY}" fill="${degraded?'#f3b23e':'#45cdea'}" fill-opacity=".05" stroke="${degraded?'#f3b23e':'#45cdea'}" stroke-opacity=".45" stroke-dasharray="3 5"/>`;
+  // objects
+  let ghost = '';
+  for (const o of S.objs){
+    const rel = o.s - S.s; const x = laneX(g,o.lane);
+    if (o.kind==='cone'){
+      const y1 = yOf(rel), y2 = yOf(rel+o.len);
+      if (y1 < 170 || y2 > 486) { if (y2 > 486 || y1 < 170){ /* partially */ } }
+      h += `<rect x="${x-g.w/2+3}" y="${Math.max(170,y2)}" width="${g.w-6}" height="${Math.max(0,Math.min(486,y1)-Math.max(170,y2))}" fill="#f3b23e" fill-opacity=".14"/>`;
+      for (let d=0; d<=o.len; d+=10){ const y = yOf(rel+d); if (y<170||y>486) continue; h += `<path d="M${x-g.w/2+6} ${y} l4 -8 l4 8z" fill="#f3b23e"/>`; }
+      continue;
+    }
+    if (o.kind==='debris'){ const y=yOf(rel); h += `<path d="M${x-8} ${y} l5 -7 l6 3 l5 -4 l2 8z" fill="#f0524f"/>`; continue; }
+    let yc = yOf(rel + o.len/2);
+    if (o.blind && rel > 80){
+      if (S.aiKnows && S.link.up){ yc = Math.max(yc, 204);
+        ghost += carShape(x, yc, o.kind, 'none', '#45cdea', true, true) + `<text x="${x-16}" y="${yc-6}" text-anchor="end" class="t-m cyn" font-size="9">AI: 対向</text><text x="${x-16}" y="${yc+6}" text-anchor="end" class="t-m cyn" font-size="9">${Math.round(rel)}m</text>`; }
+      continue;
+    }
+    if (yc < 150 || yc > 510) continue;
+    const stop = o.v === 0;
+    h += carShape(x, yc, o.kind, stop?'#2b2210':'#1b2431', stop?'#f3b23e':'#8796a8', o.v<0 || o.oncoming);
+  }
+  // planned path (green) & AI proposal (cyan)
+  const tx_ = laneX(g, S.lcReq ? S.lane : S.laneTarget);
+  h += `<path d="M${ex} ${EY-18} C${ex} ${EY-90} ${tx_} ${EY-110} ${tx_} ${EY-200} L${tx_} 178" fill="none" stroke="#48dd8a" stroke-width="2" opacity=".8"/>`;
+  const p = pending().find(q=>q.lane!=null) || (S.lcReq ? {lane:S.lcReq.target, hold:true} : null);
+  if (p){ const px = laneX(g,p.lane); h += `<path d="M${ex} ${EY-18} C${ex} ${EY-70} ${px} ${EY-90} ${px} ${EY-170} L${px} 178" fill="none" stroke="#45cdea" stroke-width="2" stroke-dasharray="5 4" class="flow-slow"/>`; }
+  // ego
+  h += carShape(ex, EY, 'car', '#000', '#f6d64a', false);
+  if (S.hazard && Math.floor(performance.now()/400)%2) h += `<circle cx="${ex-10}" cy="${EY-16}" r="3" fill="#f3b23e"/><circle cx="${ex+10}" cy="${EY-16}" r="3" fill="#f3b23e"/><circle cx="${ex-10}" cy="${EY+16}" r="3" fill="#f3b23e"/><circle cx="${ex+10}" cy="${EY+16}" r="3" fill="#f3b23e"/>`;
+  // rain
+  if (mtn){ h += `<rect x="272" y="178" width="238" height="${EY-80*PX-178}" fill="#03060a" opacity=".55"/><text x="391" y="${EY-80*PX-6}" text-anchor="middle" class="t-m dim" font-size="9">── 見通し 80m · ブラインドカーブ ──</text>`; h += ghost; }
+  if (S.rain > 0){
+    let r = ''; const n = Math.round(60*S.rain); const tt = performance.now()/1000;
+    for (let i=0;i<n;i++){ const sx = 272 + ((i*53.7) % 238); const sy = 178 + (((i*97.3) + tt*420) % 300); r += `<line x1="${sx}" y1="${sy}" x2="${sx-3}" y2="${sy+10}" stroke="#8796a8" stroke-opacity=".5"/>`; }
+    h += r;
+  }
+  $('gRoad').innerHTML = h;
+  // header
+  const nextMark = S.marks.map(m=>({...m, d:(m.s + (m.move||0)*S.t) - S.s})).filter(m=>m.d>0).sort((a,b)=>a.d-b.d)[0];
+  $('gNdHead').innerHTML = `<text x="282" y="156" class="fg">${SC.road.kind==='urban'?'市街地 · 2車線':SC.road.kind==='mtn'?'山間部 · 幅員 3.6m':'高速道路 · 3車線'}</text>
+    <text x="282" y="170" class="dim">${laneName(S.lane)}${SC.road.kind==='hw'?'車線':''} · 周囲 ${S.objs.filter(o=>Math.abs(o.s-S.s)<120).length} 物体</text>
+    ${nextMark?`<text x="500" y="156" text-anchor="end" class="${nextMark.cls==='dim'?'mag':nextMark.cls}">${nextMark.label}</text><text x="500" y="170" text-anchor="end" class="fg">${nextMark.d>=1000?(nextMark.d/1000).toFixed(1)+' km':Math.round(nextMark.d)+' m'}</text>`:''}`;
+}
+function renderRoute(){
+  // 2km route strip with speed profile
+  const x0=300, x1=504, L=2000;
+  const yv = v => 530 - clamp(v,0,120)*0.2;
+  let h = `<text x="280" y="504" class="t-m dim" font-size="9">ROUTE 2km</text>`;
+  h += `<path d="M${x0} ${yv(S.vSet)} H${x1}" stroke="#48dd8a" stroke-width="2"/>`;
+  const p = pending().find(q=>q.vSet);
+  if (p) h += `<path d="M${x0+70} ${yv(S.vSet)} L${x0+110} ${yv(p.vSet)} H${x1}" stroke="#45cdea" stroke-width="2" stroke-dasharray="5 4" fill="none" class="flow-slow"/><text x="${x0+118}" y="${yv(p.vSet)-4}" class="t-m cyn" font-size="9">${p.vSet} AI案</text>`;
+  for (const m of S.marks){ const d = (m.s + (m.move||0)*S.t) - S.s; if (d<0||d>L) continue; const x = x0 + d/L*(x1-x0);
+    h += `<line x1="${x}" y1="508" x2="${x}" y2="532" stroke="var(--${m.cls==='amb'?'amber':m.cls==='cyn'?'cyan':m.cls==='grn'?'green':'dim'})" stroke-width="1.5"/><text x="${x+3}" y="514" class="t-j ${m.cls}" font-size="9">${m.label}</text>`; }
+  h += `<path d="M${x0-4} ${yv(S.v)} l8 -4 v8z" fill="#f6d64a"/>`;
+  h += `<text x="500" y="536" text-anchor="end" class="t-j dim" font-size="9">周囲認識 · ルート</text>`;
+  $('gRoute').innerHTML = h;
+}
+function gauge(cx, kw){
+  const f = clamp(Math.abs(kw)/150, 0, 1);
+  const a = Math.PI + Math.PI*f; const [x,y] = pt(cx,230,60,a);
+  const regen = kw < -1;
+  return `<path d="M${cx-60} 230 A60 60 0 0 1 ${cx+60} 230" fill="none" stroke="#2e3947" stroke-width="3"/>
+    ${f>0.005?`<path d="M${cx-60} 230 A60 60 0 0 1 ${x.toFixed(1)} ${y.toFixed(1)}" fill="none" stroke="${regen?'#45cdea':'#e9eef4'}" stroke-width="3"/>`:''}
+    <line x1="${cx+60}" y1="230" x2="${cx+72}" y2="230" stroke="#f0524f" stroke-width="3"/>
+    <line x1="${cx}" y1="230" x2="${x.toFixed(1)}" y2="${y.toFixed(1)}" stroke="${regen?'#45cdea':'#48dd8a'}" stroke-width="2.5"/>
+    <rect x="${cx-34}" y="244" width="68" height="26" fill="#000" stroke="#2e3947"/>
+    <text x="${cx}" y="263" text-anchor="middle" class="t-m ${regen?'cyn':'grn'}" font-size="18" font-weight="600">${regen?'−':''}${Math.abs(kw).toFixed(0)}</text>
+    ${regen?`<text x="${cx}" y="284" text-anchor="middle" class="t-m cyn" font-size="9">REGEN</text>`:''}`;
+}
+function renderEwd(){
+  const kwF = S.kw*0.42, kwR = S.kw*0.58;
+  const range = Math.round(S.soc * 4.1);
+  let h = `<text x="560" y="160" class="t-m dim" font-size="10">VEHICLE / WARNING</text>
+    <text x="1040" y="160" text-anchor="end" class="t-m cyn" font-size="11">${S.mrm?'MRM DECEL':S.manual?'MANUAL':'AD DRIVE'}</text>
+    ${gauge(690,kwF)}${gauge(910,kwR)}
+    <g class="t-m" text-anchor="middle"><text x="800" y="226" class="fg" font-size="12">MOTOR</text><text x="800" y="240" class="dim" font-size="10">kW</text>
+    <text x="690" y="196" class="dim" font-size="11">F</text><text x="910" y="196" class="dim" font-size="11">R</text></g>
+    <g class="t-m" font-size="12" text-anchor="middle">
+      <text x="800" y="306" class="dim" font-size="10">MOTOR °C</text><text x="690" y="306" class="grn">${(52+Math.abs(kwF)*.12).toFixed(0)}</text><text x="910" y="306" class="grn">${(55+Math.abs(kwR)*.12).toFixed(0)}</text>
+      <text x="800" y="332" class="dim" font-size="10">TIRE kPa</text><text x="690" y="332" class="grn">240</text><text x="910" y="332" class="grn">238</text>
+      <text x="800" y="358" class="dim" font-size="10">BRAKE °C</text><text x="690" y="358" class="${S.acc<-2?'amb':'grn'}">${Math.round(70+Math.max(0,-S.acc)*22)}</text><text x="910" y="358" class="grn">${Math.round(64+Math.max(0,-S.acc)*15)}</text>
+    </g>
+    <text x="560" y="386" class="t-m" font-size="11"><tspan class="dim">SOC </tspan><tspan class="grn">${S.soc.toFixed(1)} %</tspan></text>
+    <text x="1040" y="386" text-anchor="end" class="t-m" font-size="11"><tspan class="dim">RANGE </tspan><tspan class="grn">${range} KM</tspan></text>
+    <line x1="560" y1="398" x2="1040" y2="398" stroke="#e9eef4" stroke-opacity=".35"/>
+    <line x1="820" y1="408" x2="820" y2="530" stroke="#e9eef4" stroke-opacity=".2"/>`;
+  let y = 424, lines = '';
+  const al = [...S.alerts].sort((a,b)=>(a.lvl==='warn'?0:1)-(b.lvl==='warn'?0:1));
+  for (const a of al){ if (y>510) break; lines += `<text x="562" y="${y}" class="${a.lvl==='warn'?'red':'amb'}">${a.text}</text>`; y += 18;
+    for (const s of a.sub){ if (y>510) break; lines += `<text x="562" y="${y}" class="cyn">${s}</text>`; y += 18; } y += 8; }
+  if (!al.length) lines += `<text x="562" y="424" class="grn">NO CAUTION</text>`;
+  let my = 424;
+  const memos = [{cls:'grn',text: S.mode==='AUTO'?'AI AUTO MODE':S.mode==='MANUAL'?'AI DISPLAY ONLY':'AI ADVISORY MODE'}, ...S.memos];
+  for (const m of memos.slice(0,6)){ lines += `<text x="836" y="${my}" class="${m.cls}${m.pulse?' pulse':''}">${m.text}</text>`; my += 18; }
+  h += `<g class="t-m" font-size="11">${lines}</g><text x="1040" y="530" text-anchor="end" class="t-j dim" font-size="10">車両システム／警告</text>`;
+  $('gEwd').innerHTML = h;
+}
+function renderAi(){
+  $('aiMode').textContent = !S.link.up ? 'LINK: LOST' : `MODE: ${S.mode==='ASSIST'?'ADVISORY':S.mode==='AUTO'?'AUTO (ROUTINE)':'DISPLAY ONLY'}`;
+  $('aiMode').setAttribute('class','t-m ' + (S.link.up?'cyn':'amb'));
+  let h = '';
+  const p = pending()[0] || S.props.filter(q=>q.status!=='pending' && S.t - q.resolvedAt < 5).slice(-1)[0];
+  if (p){
+    const pend = p.status==='pending';
+    const left = Math.max(0, p.timeout - (S.t - p.created));
+    const stroke = pend ? '#45cdea' : '#2e3947';
+    h += `<rect x="1100" y="176" width="460" height="124" rx="6" fill="${pend?'#071a21':'#0b1016'}" stroke="${stroke}"/>
+      <text x="1114" y="204" class="t-j ${pend?'fg':'dim'}" font-size="17" font-weight="700">${p.title}</text>
+      <text x="1114" y="226" class="t-j fg" font-size="12">${p.effect}</text>
+      <text x="1114" y="246" class="t-j dim" font-size="11">根拠：${p.basis}</text>
+      <text x="1114" y="280" class="t-j dim" font-size="11">信頼度</text>
+      <rect x="1160" y="272" width="150" height="8" rx="4" fill="#1b2a35"/><rect x="1160" y="272" width="${150*p.conf}" height="8" rx="4" fill="#45cdea"/>
+      <text x="1318" y="281" class="t-m cyn" font-size="11">${p.conf.toFixed(2)}</text>`;
+    if (pend){
+      h += `<text x="1360" y="281" class="t-m ${left<6?'amb':'dim'}" font-size="10">${p.critical?'要承認 ':''}残り ${Math.ceil(left)}s</text>`;
+      if (S.mode==='MANUAL' && !p.handback){
+        h += `<text x="1556" y="280" text-anchor="end" class="t-j dim" font-size="11">表示のみ（MANUAL）</text>`;
+      } else if (S.mode==='AUTO' && !p.critical){
+        h += `<text x="1556" y="280" text-anchor="end" class="t-j cyn" font-size="11">AUTO 実行まで ${Math.max(0,Math.ceil(3-(S.t-p.created)))}s</text>`;
+      } else {
+        h += `<g class="hit" data-act="approve" data-id="${p.id}"><rect x="1420" y="260" width="64" height="30" rx="4" fill="#123a24" stroke="#48dd8a"/><text x="1452" y="280" text-anchor="middle" class="t-j grn" font-size="12" font-weight="700">承認</text></g>
+          <g class="hit" data-act="reject" data-id="${p.id}"><rect x="1492" y="260" width="64" height="30" rx="4" fill="#1d242e" stroke="#4a5868"/><text x="1524" y="280" text-anchor="middle" class="t-j fg" font-size="12">却下</text></g>`;
+      }
+      h += `<rect x="1100" y="297" width="${460*left/p.timeout}" height="3" fill="#45cdea" opacity=".6"/>`;
+    } else {
+      const lab = {approved:['承認 → 実行','grn'], auto:['AUTO 実行','cyn'], rejected:['却下','fg'], expired:['期限切れ','dim'], stale:['通信断のため無効','amb']}[p.status];
+      h += `<text x="1556" y="280" text-anchor="end" class="t-j ${lab[1]}" font-size="12" font-weight="700">${lab[0]}</text>`;
+    }
+  } else {
+    h += `<rect x="1100" y="176" width="460" height="124" rx="6" fill="#0b1016" stroke="#2e3947"/>
+      <text x="1114" y="210" class="t-j ${S.link.up?'fg':'amb'}" font-size="16" font-weight="700">${S.link.up?'提案はありません':'通信断 ・ 提案を受け付けていません'}</text>
+      <text x="1114" y="234" class="t-j dim" font-size="12">${S.link.up?'車両412ch・V2X・交通情報・気象を遠隔で監視中':'車は車載ADだけで安全に走行を続けます'}</text>`;
+  }
+  const cards = S.aiCards.slice(-2).reverse();
+  cards.forEach((c,i)=>{
+    const y = 312 + i*70;
+    h += `<rect x="1100" y="${y}" width="460" height="60" rx="6" fill="#0b1016" stroke="#2e3947"/>`;
+    h += c.lvl==='caut' ? `<path d="M1118 ${y+12} l9 16 h-18z" fill="#f3b23e"/>` : `<circle cx="1118" cy="${y+21}" r="6" fill="none" stroke="#45cdea" stroke-width="2"/>`;
+    h += `<text x="1138" y="${y+26}" class="t-j fg" font-size="14" font-weight="500">${c.title}</text><text x="1138" y="${y+46}" class="t-j dim" font-size="11">${c.sub}</text>`;
+  });
+  if (!S.link.up) h += `<rect x="1096" y="172" width="468" height="280" rx="6" fill="#03060a" opacity=".55"/><text x="1330" y="440" text-anchor="middle" class="t-m amb pulse" font-size="12">LINK LOST · ON-BOARD AD CONTINUES</text>`;
+  const ago = S.link.up ? '0.4 秒前' : `${(S.t - S.link.lostAt).toFixed(0)} 秒前`;
+  h += `<line x1="1100" y1="458" x2="1560" y2="458" stroke="#223041"/>
+    <g class="t-j dim" font-size="10"><text x="1100" y="480">監視中のデータ</text><text x="1260" y="480">推論</text><text x="1420" y="480">最終更新</text></g>
+    <g class="t-m" font-size="15"><text x="1100" y="504" class="fg">412 ch + V2X</text><text x="1260" y="504" class="fg">遠隔 · クラウド</text><text x="1420" y="504" class="${S.link.up?'cyn':'amb'}">${ago}</text></g>
+    <text x="1560" y="530" text-anchor="end" class="t-j dim" font-size="10">外部 AI-Copilot ディスプレイ</text>`;
+  $('gAi').innerHTML = h;
+}
+function renderTl(){
+  const W = 120, X1 = 487, X0 = 120, k = (X1-X0)/W;
+  const xOf = t => X1 - (S.t - t)*k;
+  let h = '';
+  const base = Math.floor((S.t - W)/20)*20;
+  for (let t = base; t <= S.t; t += 20){ const x = xOf(t); if (x < X0-1) continue;
+    h += `<line x1="${x}" y1="628" x2="${x}" y2="852" stroke="#223041"/><text x="${x}" y="622" text-anchor="middle" class="t-m dim" font-size="9">${clock(t, true)}</text>`; }
+  const evs = S.evs.filter(e => xOf(e.t) > X0 - 40);
+  // handoff curves
+  for (const e of evs){ if (!e.from) continue; const x = xOf(e.t), y = LANE_Y[e.lane], y0 = LANE_Y[e.from];
+    h += `<path d="M${x-10} ${y0} C${x-8} ${(y0+y)/2} ${x-2} ${(y0+y)/2} ${x} ${y}" fill="none" stroke="#45cdea" stroke-opacity=".75" stroke-width="1.2"/>`; }
+  const laneCount = {};
+  for (const e of evs){
+    const x = xOf(e.t), y = LANE_Y[e.lane];
+    const n = laneCount[e.lane] = (laneCount[e.lane]||0) + 1;
+    const ly = n % 2 ? y - 9 : y + 19;
+    const right = x > 360, lx = right ? x - 9 : x + 9, anc = right ? 'text-anchor="end"' : '';
+    if (e.kind==='caut' || e.kind==='warn'){ const c = e.kind==='warn'?'#f0524f':'#f3b23e'; h += `<path d="M${x} ${y-7} l7 7 l-7 7 l-7 -7z" fill="${c}"/>`; h += `<text x="${lx}" y="${ly}" ${anc} class="t-j ${e.kind==='warn'?'red':'amb'}" font-size="10">${e.label}</text>`; }
+    else if (e.kind==='pend'){ h += `<circle cx="${x}" cy="${y}" r="6" fill="none" stroke="#e9eef4" stroke-width="2" class="pulse"/><text x="${lx}" y="${ly}" ${anc} class="t-j fg" font-size="10">${e.label}</text>`; }
+    else if (e.kind==='ai'){ h += `<circle cx="${x}" cy="${y}" r="5" fill="#45cdea"/><text x="${lx}" y="${ly}" ${anc} class="t-j cyn" font-size="10">${e.label}</text>`; }
+    else { h += `<circle cx="${x}" cy="${y}" r="5" fill="#e9eef4"/><text x="${lx}" y="${ly}" ${anc} class="t-j fg" font-size="10">${e.label}</text>`; }
+  }
+  h += `<line x1="${X1}" y1="628" x2="${X1}" y2="856" stroke="#45cdea" stroke-width="1.5" stroke-dasharray="3 3"/><text x="500" y="610" text-anchor="end" class="t-m cyn" font-size="9">NOW ${clock(S.t)}</text>`;
+  $('gTl').innerHTML = h;
+}
+function renderMesh(){
+  const up = S.link.up;
+  const sens = [['cam','CAMERA'],['lidar','LiDAR'],['radar','RADAR']];
+  const st = v => v >= .8 ? ['正常','grn','#48dd8a','#121a24',''] : v >= .3 ? ['劣化','amb','#f3b23e','#1f1a10',''] : ['除外中','amb','#f3b23e','#1f1a10','stroke-dasharray="3 3"'];
+  const health = healthCount();
+  let h = `<text x="560" y="598" class="t-d fg" font-size="14">SYSTEM MESH</text>
+    <text x="664" y="598" class="t-j dim" font-size="11">分散システム連携</text>
+    <text x="1040" y="598" text-anchor="end" class="t-m" font-size="10"><tspan class="${health===24?'grn':'amb'}">${health} OK</tspan><tspan class="dim"> / 24 NODES</tspan></text>
+    <path d="M564 800 V640 H580" fill="none" stroke="#48dd8a" stroke-width="1.5" class="flow-slow" marker-end="url(#aw)"/>
+    <path d="M1036 800 V640 H1020" fill="none" stroke="${up?'#48dd8a':'#4a5868'}" stroke-width="1.5" ${up?'class="flow-slow"':''} marker-end="url(#aw)"/>
+    <text x="570" y="690" class="t-j grn" font-size="9" transform="rotate(-90 570 690)" text-anchor="middle">表示</text>
+    <text x="1030" y="720" class="t-j ${up?'grn':'dim'}" font-size="9" transform="rotate(90 1030 720)" text-anchor="middle">テレメトリ（5G）</text>
+    <rect x="580" y="616" width="110" height="46" rx="6" fill="#121a24" stroke="#e9eef4"/>
+    <text x="635" y="636" text-anchor="middle" class="t-d fg" font-size="13">OCCUPANT</text>
+    <text x="635" y="653" text-anchor="middle" class="t-j dim" font-size="9">乗員 · 最終権限</text>
+    <circle cx="680" cy="626" r="3.5" fill="#48dd8a"/>
+    <rect x="910" y="616" width="110" height="46" rx="6" fill="${up?'#071a21':'#1d242e'}" stroke="${up?'#45cdea':'#4a5868'}" ${up?'':'stroke-dasharray="4 3"'}/>
+    <text x="965" y="636" text-anchor="middle" class="t-d ${up?'cyn':'dim'}" font-size="12">REMOTE AI</text>
+    <text x="965" y="653" text-anchor="middle" class="t-j dim" font-size="9">外部 · 助言 · 監視</text>
+    <circle cx="1010" cy="626" r="3.5" fill="${up?'#48dd8a':'#f3b23e'}"/>
+    <line x1="908" y1="632" x2="694" y2="632" stroke="${up?'#45cdea':'#4a5868'}" stroke-width="1.5" stroke-dasharray="5 4" marker-end="url(#ac)" ${up?'class="flow"':''}/>
+    <line x1="692" y1="648" x2="906" y2="648" stroke="${up?'#e9eef4':'#4a5868'}" stroke-width="1.5" marker-end="url(#aw)"/>
+    <text x="800" y="626" text-anchor="middle" class="t-j ${up?'cyn':'dim'}" font-size="9">提案 · 警告　〜 5G / V2X 〜</text>
+    <text x="800" y="664" text-anchor="middle" class="t-j ${up?'fg':'dim'}" font-size="9">承認 · 指示</text>
+    ${up?'':'<g stroke="#f3b23e" stroke-width="2.5"><line x1="842" y1="630" x2="858" y2="650"/><line x1="858" y1="630" x2="842" y2="650"/></g>'}
+    <rect x="650" y="694" width="300" height="84" rx="8" fill="none" stroke="#4a5868" stroke-dasharray="4 4"/>
+    <text x="800" y="708" text-anchor="middle" class="t-j dim" font-size="9">車載AD · 知覚 ×3 · 多数決</text>`;
+  sens.forEach(([k,label],i)=>{ const x = 664 + i*94; const s = st(S.sens[k]);
+    h += `<rect x="${x}" y="716" width="84" height="38" rx="5" fill="${s[3]}" stroke="${s[2]}" ${s[4]}/><text x="${x+42}" y="733" text-anchor="middle" class="t-d ${s[1]==='grn'?'fg':'amb'}" font-size="12">${label}</text><text x="${x+42}" y="747" text-anchor="middle" class="t-j ${s[1]}" font-size="9">${s[0]}</text>`; });
+  h += `<text x="800" y="771" text-anchor="middle" class="t-m ${S.vote===3?'grn':S.vote===2?'amb':'red'}" font-size="9">VOTE ${S.vote}/3 · ${S.vote>=2?'PATH AGREE':'ODD EXIT'}</text>
+    <path d="M640 662 L676 694" stroke="#e9eef4" stroke-width="1.5" marker-end="url(#aw)"/>
+    <text x="636" y="686" text-anchor="end" class="t-j fg" font-size="9">運転指令</text>
+    <path d="M960 662 L924 694" stroke="${up?'#45cdea':'#4a5868'}" stroke-width="1.5" stroke-dasharray="4 3" marker-end="url(#ac)"/>
+    <g transform="translate(936 670)"><rect x="0" y="4" width="10" height="8" rx="1" fill="#45cdea"/><path d="M2 4 v-2 a3 3 0 0 1 6 0 v2" fill="none" stroke="#45cdea" stroke-width="1.5"/></g>
+    <text x="964" y="690" class="t-j cyn" font-size="9">承認後のみ</text>
+    <line x1="800" y1="778" x2="800" y2="800" stroke="#48dd8a" stroke-width="2"/>
+    <line x1="564" y1="800" x2="1036" y2="800" stroke="#1d4a33" stroke-width="5"/>
+    <line x1="564" y1="800" x2="1036" y2="800" stroke="#48dd8a" stroke-width="2" class="flow"/>
+    <text x="690" y="794" text-anchor="middle" class="t-m dim" font-size="8">VEHICLE BUS · ETH / CAN-FD</text>
+    <text x="912" y="794" text-anchor="middle" class="t-j dim" font-size="8">A/B 二重化</text>
+    <g stroke="#48dd8a" stroke-width="1.5"><line x1="600" y1="800" x2="600" y2="818"/><line x1="700" y1="800" x2="700" y2="818"/><line x1="800" y1="800" x2="800" y2="818"/><line x1="900" y1="800" x2="900" y2="818"/><line x1="1000" y1="800" x2="1000" y2="818"/></g>`;
+  const nodes = [
+    ['DRIVE', `前後モーター ${S.kw<-1?'回生':'正常'}`, 'grn'],
+    ['BRAKE', S.acc < -2 ? `制動 ${(-S.acc).toFixed(1)} m/s²` : '電動ブレーキ ×2', S.acc<-2?'amb':'grn'],
+    ['STEER', `二重系 ${(S.steer>=0?'+':'')+S.steer.toFixed(1)}°`, 'grn'],
+    ['BATTERY', `SOC ${S.soc.toFixed(0)}% 正常`, 'grn'],
+    ['GNSS · MAP', 'RTK · HDマップ', 'grn'],
+  ];
+  nodes.forEach(([n,s,c],i)=>{ const x = 558 + i*100; h += `<rect x="${x}" y="818" width="84" height="42" rx="5" fill="#121a24" stroke="${c==='grn'?'#2e3947':'#f3b23e'}"/><text x="${x+42}" y="836" text-anchor="middle" class="t-d fg" font-size="11">${n}</text><text x="${x+42}" y="851" text-anchor="middle" class="t-j ${c}" font-size="9">${s}</text>`; });
+  h += `<g class="t-j dim" font-size="9">
+    <line x1="560" y1="880" x2="580" y2="880" stroke="#e9eef4" stroke-width="1.5"/><text x="586" y="883">指令</text>
+    <line x1="626" y1="880" x2="646" y2="880" stroke="#45cdea" stroke-width="1.5" stroke-dasharray="4 3"/><text x="652" y="883">AIの提案</text>
+    <line x1="710" y1="880" x2="730" y2="880" stroke="#48dd8a" stroke-width="1.5"/><text x="736" y="883">データの流れ</text>
+    <rect x="806" y="875" width="10" height="9" rx="1" fill="#45cdea"/><text x="822" y="883">承認ゲート</text></g>`;
+  $('gMesh').innerHTML = h;
+}
+function healthCount(){ let n = 24; for (const k of ['cam','lidar','radar']) if (S.sens[k] < .8) n--; if (!S.link.up) n--; else if (S.link.lat > 120) n--; return n; }
+function renderAuth(){
+  const defs = [['MANUAL','AIは表示のみ',1100],['ASSIST','AIが提案・人が承認',1256],['AUTO','定型操作をAIが実行',1412]];
+  let h = '';
+  for (const [m,d,x] of defs){ const on = S.mode===m;
+    h += `<g class="hit" data-act="mode" data-mode="${m}"><rect x="${x}" y="614" width="150" height="40" rx="5" fill="${on?'#0e2a33':'#121a24'}" stroke="${on?'#45cdea':'#2e3947'}" stroke-width="${on?2:1}"/>
+      <text x="${x+75}" y="639" text-anchor="middle" class="t-d ${on?'cyn':'dim'}" font-size="14">${m}</text></g>
+      <text x="${x+75}" y="672" text-anchor="middle" class="t-j ${on?'cyn':'dim'}" font-size="10">${d}</text>`; }
+  $('gAuth').innerHTML = h;
+  const hc = healthCount();
+  const linkTxt = !S.link.up ? 'LOST' : S.link.lat > 120 ? '遅延' : 'OK';
+  const latTxt = S.link.up ? `${Math.round(S.link.lat)} ms` : '—';
+  $('gHealth').innerHTML = `<g fill="#0b1016" stroke="#2e3947"><rect x="1100" y="768" width="150" height="74" rx="6"/><rect x="1256" y="768" width="150" height="74" rx="6"/><rect x="1412" y="768" width="150" height="74" rx="6"/></g>
+    <g class="t-j dim" font-size="10"><text x="1114" y="790">システム健全性</text><text x="1270" y="790">通信リンク（5G）</text><text x="1426" y="790">AI 応答遅延</text></g>
+    <g class="t-m" font-size="22" font-weight="600"><text x="1114" y="826" class="${hc===24?'grn':'amb'}">${hc}/24</text><text x="1270" y="826" class="${linkTxt==='OK'?'grn':'amb'}">${linkTxt}</text><text x="1426" y="826" class="${!S.link.up?'dim':S.link.lat>120?'amb':'cyn'}">${latTxt}</text></g>
+    <text x="1100" y="874" class="t-m dim" font-size="10">JST ${clock(S.t)} · ${Math.round(S.v)} km/h · ${laneName(S.lane)} · ${S.manual?'MANUAL':S.mrm?'MRM':'AD L4'}</text>`;
+}
+function renderTor(){
+  if (S.tor && !S.tor.done){
+    const left = Math.max(0, Math.ceil(S.tor.dur - (S.t - S.tor.start)));
+    $('gTor').innerHTML = `<g class="hit" data-act="take"><rect x="36" y="190" width="228" height="200" rx="8" fill="#2a1414" stroke="#f0524f" stroke-width="2" opacity=".96"/>
+      <text x="150" y="226" text-anchor="middle" class="t-j red" font-size="15" font-weight="700">運転を交代してください</text>
+      <text x="150" y="250" text-anchor="middle" class="t-m amb" font-size="10">ODD EXIT · TAKEOVER REQUEST</text>
+      <text x="150" y="310" text-anchor="middle" class="t-m red pulse" font-size="48" font-weight="600">${left}</text>
+      <text x="150" y="334" text-anchor="middle" class="t-j dim" font-size="11">応答がなければ路肩に自動停止</text>
+      <rect x="66" y="348" width="168" height="30" rx="4" fill="#2b2210" stroke="#f3b23e"/>
+      <text x="150" y="368" text-anchor="middle" class="t-j amb" font-size="12" font-weight="700">押して引き継ぐ</text></g>`;
+  } else $('gTor').innerHTML = '';
+  $('btnTake').disabled = !(S.tor && !S.tor.done);
+}
+function clock(t, short){ const base = 14*3600 + 20*60; const s = Math.max(0, Math.floor(base + t)); const hh = Math.floor(s/3600), mm = Math.floor(s/60)%60, ss = s%60;
+  return short ? `${hh}:${String(mm).padStart(2,'0')}:${String(ss).padStart(2,'0')}` : `${hh}:${String(mm).padStart(2,'0')}:${String(ss).padStart(2,'0')}`; }
+function fmt(t){ t = Math.floor(t); return `${Math.floor(t/60)}:${String(t%60).padStart(2,'0')}`; }
+
+function renderFast(){ renderRoad(); renderSpeed(); }
+
+function renderLayout(){
+  const st = v => v >= .8 ? {t:'正常', c:'grn', s:'#48dd8a', f:'#0b1f15'} : v >= .3 ? {t:'劣化', c:'amb', s:'#f3b23e', f:'#2b2210'} : {t:'除外中', c:'amb', s:'#f3b23e', f:'#2b2210'};
+  const cam = st(S.sens.cam), lid = st(S.sens.lidar), rad = st(S.sens.radar);
+  const up = S.link.up, slow = up && S.link.lat > 120;
+  const lk = !up ? {t:'LINK LOST', c:'amb', s:'#f3b23e', f:'#2b2210'} : slow ? {t:`遅延 ${Math.round(S.link.lat)} ms`, c:'amb', s:'#f3b23e', f:'#2b2210'} : {t:`5G OK · ${Math.round(S.link.lat)} ms`, c:'grn', s:'#48dd8a', f:'#0b1f15'};
+  const ad = S.mrm ? {t:'MRM 路肩停止', c:'red', s:'#f0524f', f:'#2a1414'} : S.manual ? {t:'待機（手動運転）', c:'dim', s:'#4a5868', f:'#1d242e'} : S.vote < 3 ? {t:`VOTE ${S.vote}/3`, c:'amb', s:'#f3b23e', f:'#2b2210'} : {t:'VOTE 3/3 · L4', c:'grn', s:'#48dd8a', f:'#0b1f15'};
+  const occ = (S.tor && !S.tor.done) ? {t:'交代要請中', c:'red', s:'#f0524f', f:'#2a1414'} : S.manual ? {t:'乗員が運転中', c:'fg', s:'#e9eef4', f:'#1d242e'} : pending().length ? {t:'AI提案 承認待ち', c:'cyn', s:'#45cdea', f:'#0e2a33'} : {t:'監視不要（L4）', c:'grn', s:'#48dd8a', f:'#0b1f15'};
+  const regen = S.kw < -1;
+  const drv = {t: regen ? `回生 ${Math.abs(S.kw).toFixed(0)} kW` : `${Math.max(0,S.kw).toFixed(0)} kW`, c: regen?'cyn':'grn', s: regen?'#45cdea':'#48dd8a', f: regen?'#0e2a33':'#0b1f15'};
+  const bat = {t:`SOC ${S.soc.toFixed(0)} %`, c:'grn', s:'#48dd8a', f:'#0b1f15'};
+  const brk = S.acc < -2 ? {t:`制動 ${(-S.acc).toFixed(1)} m/s²`, c:'amb', s:'#f3b23e', f:'#2b2210'} : S.v < -0.1 ? {t:'後退中', c:'amb', s:'#f3b23e', f:'#2b2210'} : {t:`舵角 ${(S.steer>=0?'+':'')+S.steer.toFixed(1)}°`, c:'grn', s:'#48dd8a', f:'#0b1f15'};
+  const net = {t:`A/B OK · ${healthCount()}/24`, c: healthCount()===24?'grn':'amb', s: healthCount()===24?'#48dd8a':'#f3b23e', f: healthCount()===24?'#0b1f15':'#2b2210'};
+  let h = '';
+  // battery
+  h += `<rect x="630" y="330" width="290" height="140" rx="8" fill="#48dd8a" fill-opacity=".06" stroke="#48dd8a" stroke-opacity=".35" stroke-dasharray="3 4"/>
+    <rect x="630" y="462" width="${290*S.soc/100}" height="6" rx="2" fill="#48dd8a" opacity=".5"/>
+    <text x="640" y="458" class="t-m grn" font-size="9" opacity=".8">BATTERY · 床下</text>`;
+  // network backbone
+  h += `<g fill="none" stroke-linecap="round"><g stroke="#1d4a33" stroke-width="5"><path d="M1060 400 H565"/><path d="M975 400 V360"/><path d="M870 400 V372"/><path d="M739 400 V384"/><path d="M1060 400 L1100 330"/><path d="M1060 400 L1100 470"/><path d="M565 400 L530 400"/></g>
+    <g stroke="#48dd8a" stroke-width="1.8" class="flow"><path d="M1060 400 H565"/><path d="M975 400 V360"/><path d="M870 400 V372"/><path d="M739 400 V384"/><path d="M1060 400 L1100 330"/><path d="M1060 400 L1100 470"/></g></g>
+    <g fill="#03060a" stroke="#48dd8a" stroke-width="1.8"><path d="M1060 391 l9 9 l-9 9 l-9 -9z"/><path d="M810 391 l9 9 l-9 9 l-9 -9z"/><path d="M565 391 l9 9 l-9 9 l-9 -9z"/></g>`;
+  // motors
+  h += `<rect x="1005" y="378" width="40" height="44" rx="6" fill="#121a24" stroke="${drv.s}" stroke-width="1.5"/><text x="1025" y="404" text-anchor="middle" class="t-m ${drv.c}" font-size="9">M·F</text>
+    <rect x="585" y="378" width="40" height="44" rx="6" fill="#121a24" stroke="${drv.s}" stroke-width="1.5"/><text x="605" y="404" text-anchor="middle" class="t-m ${drv.c}" font-size="9">M·R</text>`;
+  // brakes at wheels
+  for (const [x,y] of [[632,275],[632,525],[1000,275],[1000,525]]) h += `<circle cx="${x}" cy="${y}" r="6" fill="#03060a" stroke="${brk.s}" stroke-width="1.5"/>`;
+  // steering + seats
+  h += `<circle cx="925" cy="352" r="11" fill="none" stroke="#e9eef4" stroke-width="1.5"/>`;
+  for (const [x,y] of [[895,352],[895,448],[770,352],[770,448]]) h += `<rect x="${x-12}" y="${y-12}" width="24" height="24" rx="5" fill="#1d242e" stroke="${occ.s}" stroke-width="1.2"/>`;
+  // AD compute x3
+  [['cam',0],['lidar',1],['radar',2]].forEach(([k,i])=>{ const x = 700 + i*28; h += `<rect x="${x}" y="384" width="22" height="22" rx="3" fill="${ad.f}" stroke="${ad.s}" stroke-width="1.5"/><text x="${x+11}" y="399" text-anchor="middle" class="t-m ${ad.c}" font-size="8">${i+1}</text>`; });
+  h += `<text x="739" y="420" text-anchor="middle" class="t-m dim" font-size="8">AD ECU ×3</text>`;
+  // sensors
+  h += `<rect x="963" y="390" width="24" height="20" rx="4" fill="${cam.f}" stroke="${cam.s}" stroke-width="1.8" ${S.sens.cam<.3?'stroke-dasharray="3 2"':''}/><text x="975" y="404" text-anchor="middle" class="t-m ${cam.c}" font-size="8">CAM</text>`;
+  h += `<circle cx="870" cy="400" r="${30*Math.max(.3,S.sens.lidar)}" fill="none" stroke="${lid.s}" stroke-opacity=".5" class="pulse"/><circle cx="870" cy="400" r="14" fill="${lid.f}" stroke="${lid.s}" stroke-width="1.8"/><text x="870" y="403" text-anchor="middle" class="t-m ${lid.c}" font-size="7">LiDAR</text>`;
+  for (const [x,y] of [[1116,400],[1100,322],[1100,478],[524,350],[524,450]]) h += `<rect x="${x-6}" y="${y-8}" width="12" height="16" rx="3" fill="${rad.f}" stroke="${rad.s}" stroke-width="1.5"/>`;
+  // antenna + remote AI
+  h += `<path d="M640 404 l10 -18 l14 18 z" fill="#03060a" stroke="${lk.s}" stroke-width="1.5"/><text x="652" y="420" text-anchor="middle" class="t-m dim" font-size="8">5G·V2X</text>
+    <path d="M642 396 C560 396 400 300 270 260" fill="none" stroke="${up?'#45cdea':'#4a5868'}" stroke-width="1.5" stroke-dasharray="5 4" ${up?'class="flow"':''}/>
+    ${up?'':'<g stroke="#f3b23e" stroke-width="2.5"><line x1="402" y1="318" x2="418" y2="338"/><line x1="418" y1="318" x2="402" y2="338"/></g>'}
+    <circle cx="210" cy="250" r="40" fill="url(#aiGlow2)"/>
+    <rect x="150" y="230" width="120" height="40" rx="8" fill="${up?'#071a21':'#1d242e'}" stroke="${up?'#45cdea':'#4a5868'}" stroke-width="1.8" ${up?'':'stroke-dasharray="4 3"'}/>
+    <text x="210" y="248" text-anchor="middle" class="t-d ${up?'cyn':'dim'}" font-size="11">REMOTE AI</text><text x="210" y="262" text-anchor="middle" class="t-j dim" font-size="8">外部 · クラウド</text>
+    <path d="M662 396 H696" stroke="#45cdea" stroke-width="1.5" stroke-dasharray="3 2"/>
+    <g transform="translate(674 384)"><rect x="0" y="4" width="8" height="6" rx="1" fill="#45cdea"/><path d="M1.5 4 v-1.5 a2.5 2.5 0 0 1 5 0 v1.5" fill="none" stroke="#45cdea" stroke-width="1.2"/></g>`;
+  // header
+  h += `<text x="24" y="-50" class="t-d fg" font-size="22">VEHICLE SYSTEM LAYOUT</text><text x="302" y="-50" class="t-j dim" font-size="13">車両システム配置図</text>
+    <text x="24" y="-28" class="t-j dim" font-size="11">場面：${SC.name} ・ JST ${clock(S.t)} ・ ${Math.round(Math.abs(S.v))} km/h ・ ${laneName(S.lane)}</text>`;
+  // markers + cards
+  const cards = [
+    [1,'REMOTE · 5G / V2X','外部AI-Copilot',['屋根のアンテナから5Gと','路車間通信でつながる。切れても','車は車載ADだけで走り続ける。'],lk,[210,224]],
+    [2,'ON-BOARD AD','車載AD ×3',['3台が同じ判断をして多数決。','外部AIの指示も、ここで安全を','確かめてからでないと動かない。'],ad,[739,362]],
+    [3,'SENSORS · LiDAR','LiDAR',['屋根の中央で全周を測距。','暗所に強いが、豪雨では','届く距離が落ちる。'],lid,[870,362]],
+    [4,'SENSORS · VISION','前方カメラ',['フロントガラス上部。車線・信号・','標識を読む。雨や汚れに弱く、','劣化すると多数決から外す。'],cam,[975,366]],
+    [5,'SENSORS · RADAR','レーダー ×5',['前後と四隅。雨・霧に強く','速度を直接測れる。最後まで','残る系統。'],rad,[1100,300]],
+    [6,'PROPULSION','前後モーター',['前後に1基ずつ。減速時は','回生でバッテリーへ戻す。'],drv,[605,444]],
+    [7,'ENERGY','バッテリー',['床下に敷き詰めた駆動用電池。','残量から航続距離を計算し、','AIの経路提案にも使う。'],bat,[690,486]],
+    [8,'NETWORK','車内ネットワーク',['前・中・後のゾーンスイッチを','車載Ethernetで結ぶ。','A/B 二重化。'],net,[810,424]],
+    [9,'OCCUPANT · HMI','乗員と表示',['ダッシュボードの6画面と','承認ボタン。最終決定権は','常に車内の乗員にある。'],occ,[895,476]],
+    [10,'CHASSIS','ブレーキ・操舵',['電動ブレーキと二重系の','電動ステアリング。どちらも','2系統で冗長化。'],brk,[1000,552]],
+  ];
+  const pos = i => i < 5 ? [24 + i*314, 84] : [24 + (i-5)*314, 712];
+  let hc = '', hm = '';
+  cards.forEach(([n,eye,title,lines,stt,[mx,my0]],i)=>{
+    const my = my0 + 90;
+    const [x,y] = pos(i), w = 290, hh = 170;
+    const ax = x + w/2, ay = i < 5 ? y + hh : y;
+    hc += `<path d="M${ax} ${ay} L${mx} ${my}" stroke="#03060a" stroke-width="4" fill="none"/><path d="M${ax} ${ay} L${mx} ${my}" stroke="#f4f6f8" stroke-opacity=".45" stroke-width="1.2" fill="none"/>`;
+    hc += `<rect x="${x}" y="${y}" width="${w}" height="${hh}" rx="8" fill="${n===1?'#071a21':'#0b1016'}" stroke="${n===1?'#45cdea':'#2e3947'}"/>
+      <circle cx="${x+20}" cy="${y+22}" r="11" fill="#f4f6f8"/><text x="${x+20}" y="${y+26}" text-anchor="middle" class="t-m" font-size="${n>9?10:11}" font-weight="600" fill="#0c1117">${n}</text>
+      <text x="${x+38}" y="${y+18}" class="t-m ${n===1?'cyn':'dim'}" font-size="9">${eye}</text>
+      <text x="${x+38}" y="${y+34}" class="t-j fg" font-size="13" font-weight="700">${title}</text>
+      <g class="t-j dim" font-size="11">${lines.map((l,k)=>`<text x="${x+16}" y="${y+60+k*16}">${l}</text>`).join('')}</g>
+      <rect x="${x+16}" y="${y+hh-36}" width="${Math.max(96, stt.t.length*9+28)}" height="22" rx="11" fill="${stt.f}" stroke="${stt.s}"/>
+      <text x="${x+30}" y="${y+hh-21}" class="t-j ${stt.c}" font-size="10">${stt.t}</text>`;
+    hm += `<g class="t-m" font-size="10" font-weight="600" text-anchor="middle"><circle cx="${mx}" cy="${my}" r="10" fill="#f4f6f8" stroke="#03060a" stroke-width="2"/><text x="${mx}" y="${my+4}" fill="#0c1117">${n}</text></g>`;
+  });
+  $('gLayCards').innerHTML = hc + hm;
+  $('gLay').innerHTML = h;
+}
+function renderSlow(){
+  renderMaster(); renderFcu(); renderFma(); renderRoute(); renderEwd(); renderAi(); renderTl(); renderMesh(); renderAuth(); renderTor(); renderLayout();
+  $('clk').textContent = `${fmt(S.t)} / ${fmt(SC.dur)}`;
+  $('prog').style.width = (S.t/SC.dur*100).toFixed(1)+'%';
+}
+function renderAll(){ renderFast(); renderSlow(); }
+
+/* ---------- loop ---------- */
+function frame(now){
+  const realDt = Math.min(0.1, (now - last)/1000); last = now;
+  if (running && !holdSim){
+    let dt = realDt * (voiceOn ? 1 : rate);
+    while (dt > 0){ const d = Math.min(dt, 0.05); step(d); dt -= d; if (!running) break; }
+  }
+  if (!running && S.t >= SC.dur && contPlay && !speaking && !sayQ.length && !nextTimer){
+    const i = SCN.indexOf(SC);
+    if (i < SCN.length - 1) nextTimer = setTimeout(() => { nextTimer = null; reset(SCN[i+1]); }, 3000);
+  }
+  renderFast();
+  slowAcc += realDt;
+  if (slowAcc > 0.12){ slowAcc = 0; renderSlow(); }
+  requestAnimationFrame(frame);
+}
+
+/* ---------- controls ---------- */
+function updatePlay(){ const b = $('btnPlay'); if (!SC) return;
+  if (S && S.t >= SC.dur){ b.textContent = '↺ もう一度'; b.className = 'go'; return; }
+  b.textContent = running ? '❚❚ 一時停止' : '▶ 再生'; b.className = running ? '' : 'go'; }
+$('btnPlay').onclick = () => { if (S.t >= SC.dur){ reset(SC); return; } running = !running; updatePlay();
+  try { if (running) speechSynthesis.resume(); else speechSynthesis.pause(); } catch(e){} };
+$('btnVoice').onclick = () => { voiceOn = !voiceOn; const b = $('btnVoice'); b.setAttribute('aria-pressed', voiceOn?'true':'false'); b.textContent = voiceOn ? '🔊 ナレーション オン' : '🔊 ナレーション オフ';
+  $('btnR4').disabled = voiceOn; if (voiceOn){ pickVoice(); reset(SC); } else stopVoice(); };
+$('btnAuto').onclick = () => { autoPlay = !autoPlay; $('btnAuto').setAttribute('aria-pressed', autoPlay?'true':'false'); };
+$('btnCont').onclick = () => { contPlay = !contPlay; $('btnCont').setAttribute('aria-pressed', contPlay?'true':'false'); };
+function loadText(txt){
+  let j; try { j = JSON.parse(txt); } catch(e){ showCap('読み込めませんでした：JSON の書き方に誤りがあります（' + e.message + '）'); return; }
+  const err = validateBook(j); if (err){ showCap('読み込めませんでした：' + err); return; }
+  LOADED[j.base] = {title: j.title, narration: j.narration, actions: j.actions || []};
+  reset(SCN.find(sc => sc.id === j.base));
+}
+$('btnLoad').onclick = () => $('fileIn').click();
+$('fileIn').onchange = e => { const f = e.target.files[0]; if (!f) return; const r = new FileReader(); r.onload = () => loadText(r.result); r.readAsText(f); e.target.value = ''; };
+document.addEventListener('dragover', e => e.preventDefault());
+document.addEventListener('drop', e => { e.preventDefault(); const f = e.dataTransfer && e.dataTransfer.files[0]; if (!f) return; const r = new FileReader(); r.onload = () => loadText(r.result); r.readAsText(f); });
+$('btnCopy').onclick = () => {
+  const bk = bookFor(SC);
+  const txt = JSON.stringify({format:'av-copilot-scenario/1', base:SC.id, title:bk.title || SC.name, narration:bk.narration, actions:bk.actions || []}, null, 2);
+  const ok = () => { $('btnCopy').textContent = 'コピーしました'; setTimeout(()=>{ $('btnCopy').textContent = '台本をJSONでコピー'; }, 1800); };
+  try { navigator.clipboard.writeText(txt).then(ok, () => showCap('コピーできませんでした。ブラウザの設定でクリップボードが使えない可能性があります。')); } catch(e){ showCap('コピーできませんでした。'); }
+};
+$('btnReset').onclick = () => reset(SC);
+$('btnR1').onclick = () => { rate = 1; $('btnR1').setAttribute('aria-pressed','true'); $('btnR4').setAttribute('aria-pressed','false'); };
+$('btnR4').onclick = () => { rate = 4; $('btnR4').setAttribute('aria-pressed','true'); $('btnR1').setAttribute('aria-pressed','false'); };
+$('btnTake').onclick = () => { takeOver(); renderSlow(); };
+$('injLink').onclick = () => { if (S.link.up) linkDown(); else linkUp(); renderSlow(); };
+$('injCam').onclick = () => { const on = $('injCam').getAttribute('aria-pressed')!=='true';
+  $('injCam').setAttribute('aria-pressed', on?'true':'false');
+  if (on){ S.sens.cam = .2; alertOn('cam','caut','CAMERA EXCLUDED',['· VOTE ........... 2/3']); addEv('veh','caut','カメラ汚れ'); addEv('ad','ev','2/3で継続','veh'); if (S.link.up) aiCard('cam','caut','前方カメラが汚れています','多数決から除外 ・ LiDAR＋レーダーで継続 ・ 上限 70km/h'); }
+  else { S.sens.cam = 1; alertOff('cam'); aiCardOff('cam'); addEv('veh','ev','カメラ回復'); }
+  renderSlow(); };
+$('injDebris').onclick = () => {
+  const lane = Math.round(S.laneTarget < 0 ? 0 : S.laneTarget);
+  obj({lane, s:S.s+170, v:0, kind:'debris', len:2, avoid: SC.road.lanes>=3});
+  addEv('ad','caut','落下物を検知');
+  if (S.link.up){ addEv('ai','ai','後続車へ共有','ad'); aiCard('deb','caut','前方 170m に落下物','車載ADが検知 ・ V2Xで後続車と道路管理者へ共有'); }
+  renderSlow(); };
+document.getElementById('sv').addEventListener('click', e => {
+  const t = e.target.closest('[data-act]'); if (!t) return;
+  const act = t.dataset.act;
+  if (act==='approve' || act==='reject'){ const p = S.props.find(q=>q.id==t.dataset.id); if (p) resolve(p, act==='approve'?'approved':'rejected'); }
+  else if (act==='mode'){ if (S.manual && t.dataset.mode!=='MANUAL'){ /* 手動運転中はADへ戻す提案を待つ */ } else { S.mode = t.dataset.mode; userMode = S.mode; addEv('occ','ev',`${S.mode} に切替`); } }
+  else if (act==='ack'){ S.ack.add(t.dataset.lvl); }
+  else if (act==='take'){ takeOver(); }
+  renderSlow();
+});
+document.addEventListener('keydown', e => { if (e.code==='Space' && e.target === document.body){ e.preventDefault(); $('btnPlay').click(); } });
+
+const row = $('scnRow');
+for (const sc of SCN){ const b = document.createElement('button'); b.type='button'; b.className='scn'; b.dataset.id = sc.id; b.setAttribute('aria-pressed','false');
+  b.innerHTML = `${sc.name}<small>${sc.sub} · ${fmt(sc.dur)}</small>`; b.onclick = () => reset(sc); row.appendChild(b); }
+
+window.__sim = {get S(){return S}, step, reset, SCN, resolve, takeOver, renderAll, BOOKS, loadText};
+reset(SCN[0]);
+requestAnimationFrame(t => { last = t; requestAnimationFrame(frame); });
+})();
+</script>
+
+</body></html>

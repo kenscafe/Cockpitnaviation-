@@ -1,0 +1,385 @@
+<!doctype html>
+<html lang="ja"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>データグラビティ・シミュレーター</title></head><body>
+
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@500;600&family=JetBrains+Mono:wght@400;600&family=Noto+Sans+JP:wght@400;500;700&display=swap">
+<style>
+/* Layout: 連携シミュレーターと同じ夜間コックピットの表現。上に操作とキャプション、中央に「発生場所→処理場所」の地図と右側の指標、下にストリーム一覧。 */
+:root {
+  color-scheme: dark;
+  --room: #0c1117; --shell: #1a212b; --shell-hi: #262f3b; --screen: #03060a; --rule: #223041;
+  --fg: #e9eef4; --dim: #8796a8; --green: #48dd8a; --cyan: #45cdea; --magenta: #e061d2; --amber: #f3b23e; --red: #f0524f; --note: #f4f6f8;
+  --f-display: "Chakra Petch", "Noto Sans JP", system-ui, sans-serif;
+  --f-body: "Noto Sans JP", "Hiragino Sans", "Yu Gothic", system-ui, sans-serif;
+  --f-mono: "JetBrains Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
+}
+html { background: var(--room); }
+body { background: var(--room); color: var(--fg); font-family: var(--f-body); line-height: 1.7; font-size: 15px;
+  padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); padding-block: 32px 72px; }
+.wrap { max-width: 1240px; margin: 0 auto; display: grid; gap: 24px; }
+header { display: grid; gap: 8px; max-width: 78ch; }
+.brand { display: flex; align-items: center; gap: 12px; }
+.brand img { width: 44px; height: 44px; flex: none; }
+.eyebrow { font-family: var(--f-mono); font-size: 12px; letter-spacing: .12em; color: var(--cyan); text-transform: uppercase; }
+h1 { font-family: var(--f-display); font-weight: 600; font-size: clamp(26px, 4vw, 40px); line-height: 1.2; margin: 0; text-wrap: balance; }
+h2 { font-family: var(--f-display); font-weight: 600; font-size: 20px; margin: 0; }
+.lead { color: var(--dim); margin: 0; }
+.console { display: grid; gap: 12px; background: var(--shell); border: 1px solid var(--shell-hi); border-radius: 14px; padding: 14px 16px; }
+.row { display: flex; flex-wrap: wrap; gap: 8px 10px; align-items: center; min-width: 0; }
+.lbl { font-family: var(--f-mono); font-size: 11px; letter-spacing: .1em; color: var(--dim); text-transform: uppercase; margin-right: 4px; min-width: 64px; }
+button { font: 500 13px/1.2 var(--f-body); color: var(--fg); background: #121a24; border: 1px solid #2e3947; border-radius: 8px; padding: 8px 12px; cursor: pointer; }
+button:hover { border-color: #4a5868; }
+button:focus-visible, input:focus-visible { outline: 2px solid var(--cyan); outline-offset: 2px; }
+button[aria-pressed="true"] { background: #0e2a33; border-color: var(--cyan); color: var(--cyan); }
+button.go { background: #123a24; border-color: var(--green); color: var(--green); font-weight: 700; }
+label.sl { display: flex; align-items: center; gap: 8px; font-size: 13px; color: var(--dim); }
+label.sl b { font-family: var(--f-mono); color: var(--fg); font-weight: 600; min-width: 3.5em; font-variant-numeric: tabular-nums; }
+input[type=range] { accent-color: var(--cyan); width: 150px; }
+.cap { font-size: 15px; line-height: 1.7; min-height: 3.4em; border-left: 3px solid var(--cyan); padding: 4px 0 4px 12px; }
+.sep { width: 1px; height: 24px; background: var(--rule); }
+.scroller { overflow-x: auto; border-radius: 18px; background: var(--screen); border: 1px solid #2e3947; box-shadow: 0 30px 80px rgba(0,0,0,.45); }
+.scroller svg { display: block; width: 100%; min-width: 860px; height: auto; }
+.tblwrap { overflow-x: auto; }
+table { width: 100%; border-collapse: collapse; font-size: 13px; min-width: 720px; }
+th, td { text-align: left; padding: 8px 10px; border-bottom: 1px solid var(--rule); white-space: nowrap; }
+th { font-family: var(--f-mono); font-size: 11px; letter-spacing: .08em; color: var(--dim); font-weight: 400; text-transform: uppercase; }
+td.num { font-family: var(--f-mono); font-variant-numeric: tabular-nums; text-align: right; }
+.st { display: inline-block; font-family: var(--f-mono); font-size: 11px; padding: 1px 10px; border-radius: 999px; border: 1px solid; }
+.st.ok { color: var(--green); border-color: var(--green); background: #0b1f15; }
+.st.ng { color: var(--red); border-color: var(--red); background: #2a1414; }
+.site { font-family: var(--f-mono); font-size: 12px; }
+.fold { border-top: 1px solid var(--rule); padding-top: 12px; }
+.fold summary { cursor: pointer; list-style: none; display: flex; align-items: center; gap: 10px; }
+.fold summary::-webkit-details-marker { display: none; }
+.fold summary::before { content: "▸"; color: var(--cyan); font-family: var(--f-mono); transition: transform .15s; }
+.fold[open] summary::before { transform: rotate(90deg); }
+.fold summary::after { content: "クリックで開く"; font-size: 12px; color: var(--dim); }
+.fold[open] summary::after { content: "クリックで閉じる"; }
+.foldBody { display: grid; gap: 12px; margin-top: 14px; color: var(--dim); }
+.foldBody b { color: var(--fg); }
+.foldBody ul { margin: 0; padding-left: 1.2em; display: grid; gap: 6px; }
+.copy { position: fixed; left: 0; right: 0; bottom: 0; z-index: 5; text-align: center; padding: 4px 16px calc(4px + env(safe-area-inset-bottom, 0px)); font: 11px/1.5 var(--f-mono); letter-spacing: .06em; color: var(--dim); background: rgba(12,17,23,.92); border-top: 1px solid var(--rule); }
+.t-d { font-family: var(--f-display); font-weight: 600; } .t-m { font-family: var(--f-mono); } .t-j { font-family: var(--f-body); }
+.fg { fill: var(--fg); } .dim { fill: var(--dim); } .grn { fill: var(--green); } .cyn { fill: var(--cyan); } .amb { fill: var(--amber); } .red { fill: var(--red); }
+.flow { stroke-dasharray: 6 8; animation: flow 1.4s linear infinite; }
+@keyframes flow { to { stroke-dashoffset: -28; } }
+@media (prefers-reduced-motion: reduce) { .flow { animation: none; } .fold summary::before { transition: none; } }
+</style>
+
+<div class="wrap">
+  <header>
+    <div class="brand"><img src="data:image/png;base64,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" alt="AI CRAFT Kenscafe" width="44" height="44"><div class="eyebrow">External driving assistance · Data gravity</div></div>
+    <h1>データグラビティ・シミュレーター</h1>
+    <p class="lead">外部AI-Copilot（遠隔の運転支援システム）が扱う、車の外で発生するADAS関連データを、どこで取り込み・前処理するかのシミュレーションです。データの発生場所に近いほど遅延と回線は有利、遠いほど計算資源は豊富。その釣り合いを、配置方針とシナリオを切り替えて確かめられます。数値はすべて説明用の仮定です。</p>
+  </header>
+
+  <div class="console" aria-label="シミュレーション操作">
+    <div class="row" id="rowPre"><span class="lbl">Scenario</span></div>
+    <div class="row" id="rowPol"><span class="lbl">配置方針</span></div>
+    <div class="row">
+      <span class="lbl">条件</span>
+      <label class="sl" for="inLoad">交通量 <input id="inLoad" type="range" min="0.4" max="1.6" step="0.1" value="1"> <b id="vLoad">×1.0</b></label>
+      <label class="sl" for="inEdge">エッジの計算資源 <input id="inEdge" type="range" min="0.5" max="3" step="0.5" value="1"> <b id="vEdge">×1.0</b></label>
+    </div>
+    <div class="row">
+      <span class="lbl">ツアー</span>
+      <button id="btnTour" class="go" type="button">▶ 自動ツアーを再生</button>
+      <button id="btnVoice" type="button" aria-pressed="false">🔊 ナレーション オフ</button>
+      <span class="sep" aria-hidden="true"></span>
+      <span class="lbl" id="tourPos" style="min-width:0"></span>
+    </div>
+    <div class="cap" id="cap" aria-live="polite"></div>
+  </div>
+
+  <div class="scroller">
+    <svg id="map" viewBox="0 0 1600 860" role="img" aria-labelledby="mt md">
+      <title id="mt">データの発生場所と処理場所</title>
+      <desc id="md">上段に都市部・高速道路・山間部の3つの地域とそこで発生するデータ、中段に各地域のエッジ（MEC）、下段に地域DCと遠方の中央クラウド。線はデータが前処理される場所までの流れで、太さが量、色が遅延要件を満たすかどうかを表す。右側に指標。</desc>
+      <defs><pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse"><path d="M40 0H0V40" fill="none" stroke="#e9eef4" stroke-opacity=".04"/></pattern></defs>
+      <rect width="1600" height="860" fill="#03060a"/><rect width="1600" height="860" fill="url(#grid)"/>
+      <g id="gMap"></g>
+    </svg>
+  </div>
+
+  <section style="display:grid;gap:12px">
+    <h2>データの流れ一覧</h2>
+    <div class="tblwrap"><table>
+      <thead><tr><th>発生場所</th><th>データ</th><th style="text-align:right">量 Gbps</th><th style="text-align:right">前処理 コア</th><th>処理場所</th><th style="text-align:right">遅延 実測 / 要件</th><th>判定</th></tr></thead>
+      <tbody id="tb"></tbody>
+    </table></div>
+  </section>
+
+  <details class="fold">
+    <summary><h2>このシミュレーションの考え方</h2></summary>
+    <div class="foldBody">
+      <ul>
+        <li><b>対象のデータ</b>：交差点や路側のセンサー、車両がアップロードするADASのイベントクリップ、プローブ交通、気象など、車の外へ出てくるデータ。<b>車内で完結する自動運転の制御ループ（センサー→車載AD→アクチュエータ）は対象外</b>で、地図では点線の「車内ループ」として示しています。</li>
+        <li><b>前処理</b>：取り込み・デコード・匿名化・特徴量の抽出。量に比例して計算資源（コア）を使い、終わるとデータは数十分の一の特徴量になります。</li>
+        <li><b>処理場所</b>：地域ごとのエッジ（MEC、近いが小さい）、地域DC（中くらい）、中央クラウド（大きいが遠い）。遠くへ生データを送るほど回線と遅延の負担が増えます。</li>
+        <li><b>遅延</b>：往復の距離 ＋ 計算資源の混み具合による待ち ＋ 回線があふれたときの遅れ。各データには遅延要件があり、満たせないと赤で示します。</li>
+        <li><b>配置方針</b>：中央クラウド集約（すべて遠くで処理）、エッジ優先（届いた順にエッジへ詰め込む）、データグラビティ（遅延に厳しいものをデータのそばに残し、待てる大きなデータは回線が許す範囲で地域DCへ）。</li>
+        <li><b>シナリオ</b>：連携シミュレーターのA〜Eに合わせて、データの発生量や回線の太さが変わります。</li>
+      </ul>
+    </div>
+  </details>
+</div>
+
+<footer class="copy">Copyright &copy; Kenscafe</footer>
+
+<script>
+(function(){
+const $ = id => document.getElementById(id);
+const ZONES = [
+  {id:'U', name:'都市部', sub:'交差点・市街地（シナリオD）', x:40,  edge:{cores:80, name:'MEC 都市'},  bh:40,  rtt:{edge:4, reg:12, cloud:45}},
+  {id:'H', name:'高速道路', sub:'本線・JCT（シナリオA・B・C）', x:440, edge:{cores:60, name:'MEC 高速'},  bh:20,  rtt:{edge:4, reg:18, cloud:50}},
+  {id:'M', name:'山間部', sub:'細い山道（シナリオE）', x:840, edge:{cores:16, name:'MEC 山間'},  bh:2.5, rtt:{edge:5, reg:35, cloud:70}},
+];
+const SITES = {reg:{cores:400, name:'地域DC', price:1.5}, cloud:{cores:4000, name:'中央クラウド', price:1.0}};
+const EDGE_PRICE = 3.0;
+// v: raw Gbps, c: cores per Gbps (ingest + pre-process), L: latency budget ms, r: size after pre-processing
+const STREAMS = [
+  {id:'U1', z:'U', name:'交差点カメラ（V2I）', v:6,   c:8,  L:50,   r:1/40, kind:'rsu'},
+  {id:'U2', z:'U', name:'車両ADASクリップ',    v:3,   c:6,  L:500,  r:1/20, kind:'veh'},
+  {id:'U3', z:'U', name:'プローブ・CAN要約',   v:0.3, c:2,  L:1000, r:1/2,  kind:'veh'},
+  {id:'H1', z:'H', name:'路側センサー・工事V2X', v:2,  c:6,  L:100,  r:1/30, kind:'rsu'},
+  {id:'H2', z:'H', name:'車両ADASクリップ',    v:5,   c:6,  L:500,  r:1/20, kind:'veh'},
+  {id:'H3', z:'H', name:'プローブ交通',        v:0.5, c:2,  L:1000, r:1/2,  kind:'veh'},
+  {id:'H4', z:'H', name:'気象レーダー',        v:0.4, c:4,  L:2000, r:1/5,  kind:'ext'},
+  {id:'M1', z:'M', name:'カーブ路側センサー',  v:1.2, c:10, L:50,   r:1/50, kind:'rsu'},
+  {id:'M2', z:'M', name:'車両ADASクリップ',    v:0.6, c:6,  L:500,  r:1/20, kind:'veh'},
+  {id:'M3', z:'M', name:'道路監視カメラ',      v:0.8, c:8,  L:200,  r:1/40, kind:'rsu'},
+];
+const PRESETS = {
+  N:{name:'平常', mult:{}, bh:{}},
+  A:{name:'A 工事規制', mult:{H1:2.2, H2:1.4}, bh:{}},
+  B:{name:'B 豪雨', mult:{H2:3, H4:3, H1:1.5}, bh:{}},
+  C:{name:'C 回線障害', mult:{}, bh:{H:0.2}},
+  D:{name:'D 都市の遠隔支援', mult:{U1:1.8, U2:1.5}, bh:{}},
+  E:{name:'E 山道のすれ違い', mult:{M1:2, M3:1.6, M2:1.5}, bh:{}},
+};
+function compute(o){
+  // o: {preset, policy, load, edgeScale}
+  const P = PRESETS[o.preset];
+  const load = o.load, es = o.edgeScale;
+  const zone = id => ZONES.find(z=>z.id===id);
+  const st = STREAMS.map(s => ({...s, vol: s.v * (s.kind==='veh' ? load : (0.6+0.4*load)) * (P.mult[s.id]||1)}));
+  const cap = {reg:SITES.reg.cores, cloud:SITES.cloud.cores};
+  ZONES.forEach(z => cap['e'+z.id] = z.edge.cores * es);
+  const used = {reg:0, cloud:0, eU:0, eH:0, eM:0};
+  const bhCap = {}; ZONES.forEach(z => bhCap[z.id] = z.bh * (P.bh[z.id] || 1));
+  const bhUse = {U:0, H:0, M:0};
+  const siteKey = (s, site) => site==='edge' ? 'e'+s.z : site;
+  const add = (s, site) => { s.site = site; used[siteKey(s, site)] += s.vol*s.c; bhUse[s.z] += site === 'edge' ? s.vol * s.r : s.vol; };
+  const del = s => { used[siteKey(s, s.site)] -= s.vol*s.c; bhUse[s.z] -= s.site === 'edge' ? s.vol * s.r : s.vol; };
+  if (o.policy === 'cloud'){ st.forEach(s => add(s, 'cloud')); }
+  else if (o.policy === 'edge'){
+    // 到着順にエッジへ。あふれた分だけ地域DC→クラウド
+    for (const s of st){ const need = s.vol*s.c; const k = 'e'+s.z;
+      add(s, used[k] + need <= cap[k] ? 'edge' : used.reg + need <= cap.reg ? 'reg' : 'cloud'); }
+  } else {
+    // データグラビティ：遅延の厳しいものから、データの近くに。エッジは余裕を残し、待てる大きなデータは回線が許す範囲で地域DCへ
+    const order = [...st].sort((a,b) => a.L - b.L || b.vol - a.vol);
+    for (const s of order){
+      const z = zone(s.z), need = s.vol*s.c;
+      let best = 'cloud', bestScore = Infinity;
+      for (const cand of ['edge','reg','cloud']){
+        const k = siteKey(s, cand);
+        const after = (used[k] + need) / cap[k];
+        if (after > (cand==='edge' ? 0.75 : 0.85)) continue;
+        const offEdge = cand !== 'edge';
+        const bhAfter = (bhUse[s.z] + (offEdge ? s.vol : s.vol*s.r)) / bhCap[s.z];
+        const lat = z.rtt[cand] + 8/(1-Math.min(after,.95)) + (offEdge && bhAfter > .85 ? 400*(bhAfter-.85) : 0);
+        const price = cand==='edge' ? EDGE_PRICE : SITES[cand].price;
+        let score = need*price*0.05 + (offEdge ? s.vol*(cand==='cloud'?3:1) : 0);
+        if (lat > s.L*0.8) score += 1000 + lat;
+        if (offEdge && bhAfter > .85) score += 500*bhAfter;
+        if (score < bestScore){ bestScore = score; best = cand; }
+      }
+      add(s, best);
+    }
+  }
+  // latency evaluation
+  for (const s of st){
+    const z = zone(s.z), k = siteKey(s, s.site);
+    const u = used[k] / cap[k];
+    const proc = u >= 1 ? 999 : 8 / (1 - Math.min(u, .95));
+    const bu = bhUse[s.z] / bhCap[s.z];
+    const cong = s.site !== 'edge' ? (bu > 1 ? 999 : bu > .85 ? 400 * (bu - .85) : 0) : 0;
+    s.lat = Math.min(999, z.rtt[s.site] + proc + cong);
+    s.ok = s.lat <= s.L;
+    s.cores = s.vol * s.c;
+  }
+  const totalVol = st.reduce((a,s)=>a+s.vol,0);
+  const okVol = st.filter(s=>s.ok).reduce((a,s)=>a+s.vol,0);
+  const wanRaw = st.filter(s=>s.site!=='edge').reduce((a,s)=>a+s.vol,0);
+  const wanDer = st.filter(s=>s.site==='edge').reduce((a,s)=>a+s.vol*s.r,0);
+  const cost = ZONES.reduce((a,z)=>a + used['e'+z.id]*EDGE_PRICE, 0) + used.reg*SITES.reg.price + used.cloud*SITES.cloud.price
+             + st.reduce((a,s)=>a + (s.site==='edge' ? s.vol*s.r*1 : s.vol*(s.site==='cloud'?3:1))*10, 0);
+  return {st, used, cap, bhUse, bhCap, okPct: okVol/totalVol*100, okCount: st.filter(s=>s.ok).length, wanRaw, wanDer, totalVol, cost};
+}
+
+
+const POLICIES = {cloud:'中央クラウド集約', edge:'エッジ優先', gravity:'データグラビティ'};
+const SITE_NAME = {edge:'エッジ', reg:'地域DC', cloud:'中央クラウド'};
+let cfg = {preset:'N', policy:'gravity', load:1, edgeScale:1};
+let R = null;
+
+const ZX = i => 30 + i*395, ZW = 375;
+const col = ok => ok ? '#48dd8a' : '#f0524f';
+function bar(x, y, w, frac, label, val, warnAt){
+  const f = Math.max(0, frac), c = f > 1 ? '#f0524f' : f > (warnAt||.85) ? '#f3b23e' : '#48dd8a';
+  return `<text x="${x}" y="${y-6}" class="t-j dim" font-size="11">${label}</text><text x="${x+w}" y="${y-6}" text-anchor="end" class="t-m ${f>1?'red':f>(warnAt||.85)?'amb':'fg'}" font-size="11">${val}</text>
+    <rect x="${x}" y="${y}" width="${w}" height="8" rx="4" fill="#1b2431"/><rect x="${x}" y="${y}" width="${w*Math.min(1,f)}" height="8" rx="4" fill="${c}"/>`;
+}
+function render(){
+  R = compute(cfg);
+  let h = '', hl = '', hs = '';
+  const regX = 420, regY = 690, regW = 380, cloudX = 960, cloudW = 240;
+  // regional & cloud
+  const ur = R.used.reg / R.cap.reg, uc = R.used.cloud / R.cap.cloud;
+  h += `<line x1="${regX+regW}" y1="${regY+45}" x2="${cloudX}" y2="${regY+45}" stroke="#4a5868" stroke-width="2" stroke-dasharray="2 8"/>
+    <text x="${(regX+regW+cloudX)/2}" y="${regY+36}" text-anchor="middle" class="t-m dim" font-size="10">基幹網 · 約500km</text>
+    <rect x="${regX}" y="${regY}" width="${regW}" height="100" rx="10" fill="#121a24" stroke="#8796a8"/>
+    <text x="${regX+16}" y="${regY+26}" class="t-d fg" font-size="15">REGIONAL DC</text><text x="${regX+132}" y="${regY+26}" class="t-j dim" font-size="11">地域DC · ${SITES.reg.cores} コア</text>
+    ${bar(regX+16, regY+56, regW-32, ur, '計算資源', `${R.used.reg.toFixed(0)} / ${SITES.reg.cores}`)}
+    <text x="${regX+16}" y="${regY+88}" class="t-j dim" font-size="10">往復 12〜35 ms ・ Copilotの推論もここ</text>
+    <rect x="${cloudX}" y="${regY}" width="${cloudW}" height="100" rx="10" fill="#121a24" stroke="#8796a8" stroke-dasharray="4 3"/>
+    <text x="${cloudX+16}" y="${regY+26}" class="t-d fg" font-size="15">CENTRAL CLOUD</text><text x="${cloudX+16}" y="${regY+44}" class="t-j dim" font-size="11">中央クラウド · ${SITES.cloud.cores} コア</text>
+    ${bar(cloudX+16, regY+64, cloudW-32, uc, '計算資源', `${(uc*100).toFixed(0)} %`)}
+    <text x="${cloudX+16}" y="${regY+92}" class="t-j dim" font-size="10">往復 45〜70 ms</text>`;
+  ZONES.forEach((z,i)=>{
+    const x0 = ZX(i), sts = R.st.filter(s=>s.z===z.id);
+    const ex = x0+60, ey = 470, ew = 255, ecx = x0 + ZW/2;
+    const ue = R.used['e'+z.id] / R.cap['e'+z.id];
+    const bu = R.bhUse[z.id] / R.bhCap[z.id];
+    // zone panel
+    h += `<rect x="${x0}" y="40" width="${ZW}" height="380" rx="10" fill="#0b1016" stroke="#2e3947"/>
+      <text x="${x0+16}" y="66" class="t-j fg" font-size="15" font-weight="700">${z.name}</text><text x="${x0+16+z.name.length*16+8}" y="66" class="t-j dim" font-size="11">${z.sub}</text>`;
+    // closed loop (excluded)
+    h += `<g opacity=".7"><circle cx="${x0+330}" cy="104" r="24" fill="none" stroke="#8796a8" stroke-dasharray="3 4"/>
+      <rect x="${x0+320}" y="94" width="20" height="20" rx="4" fill="#1d242e" stroke="#f6d64a"/>
+      <text x="${x0+330}" y="142" text-anchor="middle" class="t-j dim" font-size="9">車内ループ</text><text x="${x0+330}" y="154" text-anchor="middle" class="t-j dim" font-size="9">対象外</text></g>`;
+    // backhaul pipe
+    const pw = 4 + Math.sqrt(R.bhCap[z.id])*2.2;
+    const px2 = regX + 60 + i*130;
+    h += `<path d="M${ecx} ${ey+92} C${ecx} ${ey+150} ${px2} ${regY-60} ${px2} ${regY}" fill="none" stroke="#1b2431" stroke-width="${pw}" stroke-linecap="round"/>
+      <path d="M${ecx} ${ey+92} C${ecx} ${ey+150} ${px2} ${regY-60} ${px2} ${regY}" fill="none" stroke="${bu>1?'#f0524f':bu>.85?'#f3b23e':'#48dd8a'}" stroke-opacity=".8" stroke-width="${Math.max(1.5, pw*Math.min(1,bu))}" class="flow"/>
+      <text x="${ecx + (i===0?-12:12)}" y="${ey+132}" text-anchor="${i===0?'end':'start'}" class="t-m ${bu>1?'red':bu>.85?'amb':'dim'}" font-size="10">回線 ${R.bhUse[z.id].toFixed(1)} / ${R.bhCap[z.id].toFixed(1)} Gbps</text>`;
+    // edge node
+    h += `<rect x="${ex}" y="${ey}" width="${ew}" height="92" rx="8" fill="#121a24" stroke="${ue>.9?'#f0524f':ue>.75?'#f3b23e':'#45cdea'}"/>
+      <text x="${ex+14}" y="${ey+24}" class="t-d fg" font-size="13">EDGE · MEC</text><text x="${ex+104}" y="${ey+24}" class="t-j dim" font-size="11">${z.edge.name} · ${R.cap['e'+z.id].toFixed(0)} コア</text>
+      ${bar(ex+14, ey+50, ew-28, ue, '計算資源', `${R.used['e'+z.id].toFixed(0)} / ${R.cap['e'+z.id].toFixed(0)}`, .75)}
+      <text x="${ex+14}" y="${ey+82}" class="t-j dim" font-size="10">往復 ${z.rtt.edge} ms ・ 基地局のそば</text>`;
+    // sources
+    sts.forEach((s,j)=>{
+      const sx = x0+36, sy = 120 + j*72;
+      const r = 6 + Math.sqrt(s.vol)*6;
+      const c = col(s.ok);
+      // flow line to processing location
+      const tx = ex + 30 + j*55, ty = ey;
+      if (s.site === 'edge'){
+        hl += `<path d="M${sx+r} ${sy} C${sx+120} ${sy} ${tx} ${ty-70} ${tx} ${ty}" fill="none" stroke="${c}" stroke-opacity=".75" stroke-width="${1+s.vol*1.1}" class="flow"/>`;
+      } else {
+        const destX = s.site==='reg' ? px2 : cloudX+30, destY = regY + (s.site==='reg'?0:20);
+        hl += `<path d="M${sx+r} ${sy} C${sx+120} ${sy} ${tx} ${ty-70} ${tx} ${ty}" fill="none" stroke="${c}" stroke-opacity=".75" stroke-width="${1+s.vol*1.1}" stroke-dasharray="2 4"/>`;
+        hl += `<path d="M${ecx} ${ey+92} C${ecx} ${ey+150} ${px2} ${regY-60} ${px2} ${s.site==='cloud'? regY-14 : regY}${s.site==='cloud'?` L${cloudX+40} ${regY-14} L${cloudX+40} ${regY}`:''}" fill="none" stroke="${c}" stroke-opacity=".55" stroke-width="${1+s.vol*0.6}" stroke-dasharray="6 8" class="flow"/>`;
+      }
+      const kindFill = s.kind==='rsu' ? '#0e2a33' : s.kind==='veh' ? '#1d242e' : '#1b2431';
+      hs += `<rect x="${sx+r+4}" y="${sy-18}" width="${Math.min(ZW-r-60, 250)}" height="50" rx="4" fill="#0b1016" fill-opacity=".88"/><circle cx="${sx}" cy="${sy}" r="${r}" fill="${kindFill}" stroke="${c}" stroke-width="2"/>
+        <text x="${sx+r+10}" y="${sy-4}" class="t-j fg" font-size="12" font-weight="500">${s.name}</text>
+        <text x="${sx+r+10}" y="${sy+13}" class="t-m dim" font-size="10">${s.vol.toFixed(1)} Gbps · ${s.cores.toFixed(0)} コア → ${SITE_NAME[s.site]}</text>
+        <text x="${sx+r+10}" y="${sy+27}" class="t-m ${s.ok?'grn':'red'}" font-size="10">遅延 ${s.lat>=999?'—（あふれ）':Math.round(s.lat)+' ms'} / 要件 ${s.L} ms</text>`;
+    });
+  });
+  h += hl + hs;
+  // KPI panel
+  const kx = 1230, kw = 340;
+  const ok = R.okCount, tot = R.st.length;
+  const eUse = ZONES.reduce((a,z)=>a+R.used['e'+z.id],0), all = eUse + R.used.reg + R.used.cloud;
+  const shares = [['エッジ', eUse/all, '#45cdea'], ['地域DC', R.used.reg/all, '#48dd8a'], ['クラウド', R.used.cloud/all, '#8796a8']];
+  let sx = kx+16;
+  h += `<rect x="${kx}" y="40" width="${kw}" height="750" rx="10" fill="#0b1016" stroke="#2e3947"/>
+    <text x="${kx+16}" y="68" class="t-d fg" font-size="15">BALANCE</text><text x="${kx+100}" y="68" class="t-j dim" font-size="11">${PRESETS[cfg.preset].name} ・ ${POLICIES[cfg.policy]}</text>
+    <text x="${kx+16}" y="104" class="t-j dim" font-size="11">遅延要件を満たしたデータ</text>
+    <text x="${kx+16}" y="150" class="t-m ${ok===tot?'grn':ok>=tot-2?'amb':'red'}" font-size="40" font-weight="600">${ok}/${tot}</text>
+    <text x="${kx+130}" y="150" class="t-m dim" font-size="13">量で ${R.okPct.toFixed(0)} %</text>
+    <text x="${kx+16}" y="190" class="t-j dim" font-size="11">計算資源の分散（使ったコアの割合）</text>`;
+  for (const [n,f,c] of shares){ const w = (kw-32)*f; if (w>0.5) h += `<rect x="${sx}" y="200" width="${w}" height="16" fill="${c}"/>`; sx += w; }
+  h += `<g class="t-j" font-size="10">${shares.map(([n,f,c],i)=>`<rect x="${kx+16+i*104}" y="226" width="10" height="10" fill="${c}"/><text x="${kx+30+i*104}" y="235" class="dim">${n} ${(f*100).toFixed(0)}%</text>`).join('')}</g>
+    <text x="${kx+16}" y="272" class="t-j dim" font-size="11">遠くへ送る生データ（WAN）</text>
+    <text x="${kx+16}" y="304" class="t-m fg" font-size="24" font-weight="600">${R.wanRaw.toFixed(1)}<tspan class="dim" font-size="12"> Gbps</tspan></text>
+    <text x="${kx+180}" y="304" class="t-m dim" font-size="11">特徴量 ${R.wanDer.toFixed(2)} Gbps</text>
+    <text x="${kx+16}" y="344" class="t-j dim" font-size="11">コスト指標（計算＋転送）</text>
+    <text x="${kx+16}" y="376" class="t-m fg" font-size="24" font-weight="600">${R.cost.toFixed(0)}</text>
+    <line x1="${kx+16}" y1="400" x2="${kx+kw-16}" y2="400" stroke="#223041"/>
+    <text x="${kx+16}" y="428" class="t-j fg" font-size="12" font-weight="700">計算資源の使用率</text>`;
+  let yy = 456;
+  ZONES.forEach(z => { h += bar(kx+16, yy, kw-32, R.used['e'+z.id]/R.cap['e'+z.id], `エッジ ${z.name}`, `${(R.used['e'+z.id]/R.cap['e'+z.id]*100).toFixed(0)} %`, .75); yy += 38; });
+  h += bar(kx+16, yy, kw-32, ur, '地域DC', `${(ur*100).toFixed(0)} %`); yy += 38;
+  h += bar(kx+16, yy, kw-32, uc, '中央クラウド', `${(uc*100).toFixed(0)} %`); yy += 46;
+  h += `<text x="${kx+16}" y="${yy}" class="t-j fg" font-size="12" font-weight="700">地域から地域DCへの回線</text>`; yy += 28;
+  ZONES.forEach(z => { const b = R.bhUse[z.id]/R.bhCap[z.id]; h += bar(kx+16, yy, kw-32, b, `${z.name}（${R.bhCap[z.id].toFixed(1)} Gbps）`, `${(b*100).toFixed(0)} %`); yy += 38; });
+  // legend
+  h += `<g class="t-j dim" font-size="11">
+    <circle cx="44" cy="830" r="7" fill="#0e2a33" stroke="#48dd8a" stroke-width="2"/><text x="58" y="834">路側・交差点のセンサー</text>
+    <circle cx="214" cy="830" r="7" fill="#1d242e" stroke="#48dd8a" stroke-width="2"/><text x="228" y="834">車両からのアップロード</text>
+    <line x1="380" y1="830" x2="410" y2="830" stroke="#48dd8a" stroke-width="3"/><text x="418" y="834">遅延要件を満たす</text>
+    <line x1="540" y1="830" x2="570" y2="830" stroke="#f0524f" stroke-width="3"/><text x="578" y="834">満たさない</text>
+    <line x1="666" y1="830" x2="696" y2="830" stroke="#8796a8" stroke-width="2" stroke-dasharray="6 6"/><text x="704" y="834">エッジを素通りして遠くで処理</text>
+    <text x="920" y="834">線の太さ＝データ量 ・ 円の大きさ＝発生量</text></g>`;
+  $('gMap').innerHTML = h;
+  // table
+  $('tb').innerHTML = R.st.map(s => `<tr><td>${ZONES.find(z=>z.id===s.z).name}</td><td>${s.name}</td><td class="num">${s.vol.toFixed(1)}</td><td class="num">${s.cores.toFixed(0)}</td><td class="site">${SITE_NAME[s.site]}</td><td class="num">${s.lat>=999?'—':Math.round(s.lat)} / ${s.L} ms</td><td><span class="st ${s.ok?'ok':'ng'}">${s.ok?'OK':'超過'}</span></td></tr>`).join('');
+  // controls state
+  document.querySelectorAll('[data-pre]').forEach(b => b.setAttribute('aria-pressed', b.dataset.pre===cfg.preset?'true':'false'));
+  document.querySelectorAll('[data-pol]').forEach(b => b.setAttribute('aria-pressed', b.dataset.pol===cfg.policy?'true':'false'));
+  $('inLoad').value = cfg.load; $('vLoad').textContent = '×' + cfg.load.toFixed(1);
+  $('inEdge').value = cfg.edgeScale; $('vEdge').textContent = '×' + cfg.edgeScale.toFixed(1);
+}
+
+/* controls */
+for (const [k,p] of Object.entries(PRESETS)){ const b = document.createElement('button'); b.type='button'; b.dataset.pre = k; b.textContent = p.name; b.onclick = () => { stopTour(); cfg.preset = k; render(); }; $('rowPre').appendChild(b); }
+for (const [k,n] of Object.entries(POLICIES)){ const b = document.createElement('button'); b.type='button'; b.dataset.pol = k; b.textContent = n; b.onclick = () => { stopTour(); cfg.policy = k; render(); }; $('rowPol').appendChild(b); }
+$('inLoad').oninput = e => { stopTour(); cfg.load = +e.target.value; render(); };
+$('inEdge').oninput = e => { stopTour(); cfg.edgeScale = +e.target.value; render(); };
+
+/* tour */
+const TOUR = [
+  {preset:'N', policy:'cloud', es:1, text:'外部の運転支援システムに集まるのは、車の外で発生するデータです。交差点や路側のセンサー、車両がアップロードするADASのクリップ、プローブ、気象。車内で完結する自動運転の制御ループは対象外です。'},
+  {preset:'N', policy:'cloud', es:1, text:'すべてを中央クラウドで処理すると、計算資源には余裕があっても、遠さと回線がボトルネックになります。交差点カメラや山のカーブセンサーは遅延要件を守れず、山間部の回線もあふれます。'},
+  {preset:'N', policy:'edge', es:1, text:'データのそばのエッジで処理すれば、回線はほとんど使いません。ただし届いた順にエッジへ詰め込むと計算資源が飽和し、遅延にいちばん厳しい処理が待たされます。'},
+  {preset:'N', policy:'gravity', es:1, text:'データグラビティに沿った配置では、遅延に厳しい処理をデータのそばに残し、待てる大きなデータは回線に余裕がある範囲で地域DCへ送ります。10本すべてが要件を満たします。'},
+  {preset:'B', policy:'gravity', es:1, text:'豪雨では、劣化したセンサーの記録が大量にアップロードされます。高速道路の回線の使用率は上がりますが、前処理を地域DCと分担して要件を守ります。'},
+  {preset:'C', policy:'cloud', es:1, text:'高速道路の回線が細った場合。生データを遠くへ送る中央クラウド集約では、半分以上のデータが遅延要件を守れません。'},
+  {preset:'C', policy:'gravity', es:1, text:'データグラビティ配置では、エッジで特徴量に絞ってから送るので、回線が細っても影響を小さく抑えられます。'},
+  {preset:'D', policy:'gravity', es:1, text:'都市の遠隔支援では交差点カメラのデータが増え、都市のエッジだけでは足りなくなります。近くの地域DCへ移して、遅延要件を守ります。'},
+  {preset:'E', policy:'gravity', es:1, text:'山道のシナリオでは、カーブのセンサーのデータが増えます。山間部はエッジも回線も小さく、どこに置いても要件を満たせない処理が出ます。'},
+  {preset:'E', policy:'gravity', es:2, text:'エッジの計算資源を2倍に増強すると、すべての要件を満たせます。データの発生場所に合わせて、計算資源をどこにどれだけ置くかが設計の要です。'},
+];
+let tourI = -1, tourTimer = null, voiceOn = false, jaVoice = null;
+function pickVoice(){ try { const vs = speechSynthesis.getVoices().filter(v=>/^ja/i.test(v.lang)); jaVoice = vs.find(v=>/Google|Kyoko|Nanami|Haruka|O-ren/i.test(v.name)) || vs[0] || null; } catch(e){} }
+try { speechSynthesis.onvoiceschanged = pickVoice; pickVoice(); } catch(e){}
+function speak(t, cb){ let done=false; const fin=()=>{ if(done) return; done=true; cb(); };
+  try { const u = new SpeechSynthesisUtterance(t); u.lang='ja-JP'; u.rate=1.1; if (jaVoice) u.voice=jaVoice; u.onend=fin; u.onerror=fin; speechSynthesis.speak(u); } catch(e){ fin(); return; }
+  setTimeout(fin, (t.length*0.17+2.5)*1000); }
+function stopTour(){ if (tourTimer) clearTimeout(tourTimer); tourTimer = null; tourI = -1; try { speechSynthesis.cancel(); } catch(e){} $('btnTour').textContent = '▶ 自動ツアーを再生'; $('btnTour').className = 'go'; $('tourPos').textContent = ''; }
+function tourStep(){
+  tourI++;
+  if (tourI >= TOUR.length){ stopTour(); $('cap').textContent = 'ツアーはここまでです。配置方針・シナリオ・条件を自由に切り替えて試せます。'; return; }
+  const st = TOUR[tourI];
+  cfg = {preset:st.preset, policy:st.policy, load:1, edgeScale:st.es};
+  render(); $('cap').textContent = st.text; $('tourPos').textContent = `${tourI+1} / ${TOUR.length}`;
+  const next = () => { if (tourI < 0) return; tourTimer = setTimeout(tourStep, 1200); };
+  if (voiceOn) speak(st.text, next); else tourTimer = setTimeout(tourStep, (st.text.length*0.12 + 3)*1000);
+}
+$('btnTour').onclick = () => { if (tourI >= 0){ stopTour(); return; } $('btnTour').textContent = '■ ツアーを止める'; $('btnTour').className = ''; tourStep(); };
+$('btnVoice').onclick = () => { voiceOn = !voiceOn; $('btnVoice').setAttribute('aria-pressed', voiceOn?'true':'false'); $('btnVoice').textContent = voiceOn ? '🔊 ナレーション オン' : '🔊 ナレーション オフ'; if (voiceOn) pickVoice(); else { try { speechSynthesis.cancel(); } catch(e){} } };
+
+window.__dg = {compute, get cfg(){return cfg}, set cfg(v){cfg=v; render();}, TOUR};
+render();
+$('cap').textContent = '「自動ツアーを再生」で、配置方針とシナリオを順に切り替えながら説明します。ナレーションをオンにすると読み上げます。';
+})();
+</script>
+
+</body></html>
