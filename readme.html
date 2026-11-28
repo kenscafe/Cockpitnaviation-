@@ -63,6 +63,20 @@ th, td { border-bottom: 1px solid var(--rule); padding: 7px 10px; text-align: le
 <p>GitHub Pages と同じ内容を Vercel でも公開できます（ビルドなしの静的サイト。設定は <code>vercel.json</code>）。</p>
 <ol><li>Vercel の「Add New → Project」でこのリポジトリをインポート</li><li>Framework Preset は「Other」のまま。Build Command・環境変数は不要（ビルドなしで、リポジトリのルートがそのまま公開されます）</li><li>Deploy を押すと <code>https://&lt;プロジェクト名&gt;.vercel.app/</code> で開けます。説明動画は <code>/story</code></li><li>以後は <code>main</code> への push で自動的に本番が更新され、プルリクエストごとに Preview URL も作られます</li></ol>
 <p><code>scenarios/builtin.js</code> と <code>readme.html</code> はコミット済みのものをそのまま配信します。シナリオを変えたら <code>publish.sh</code>（または <code>python3 tools/bundle.py</code> と <code>python3 tools/build_docs.py</code>）で作り直してからコミットしてください。</p>
+<h2 id="コンテナ-/-kubernetes-で動かす">コンテナ / Kubernetes で動かす</h2>
+<p>nginx で静的ファイルを配るだけのコンテナイメージにまとめてあります（<code>Dockerfile</code>）。ビルドの途中でシナリオの検証、<code>builtin.js</code> と使い方ページの作り直し、配布用 zip の作成を行います。待ち受けは <strong>8080 番</strong>、root 以外のユーザーで動き、<code>/healthz</code> が死活確認用です。</p>
+<h3 id="手元で動かす">手元で動かす</h3>
+<pre class=""><code>docker build -t cockpit-demo .
+docker run --rm -p 8080:8080 cockpit-demo</code></pre>
+<p><code>http://localhost:8080/</code> でデモ、<code>/story/</code> で説明動画が開きます。</p>
+<h3 id="イメージの自動作成ghcr">イメージの自動作成（GHCR）</h3>
+<p><code>.github/workflows/container.yml</code> が、<code>main</code> への push のたびにイメージを作り <code>ghcr.io/kenscafe/cockpit-demo</code> に置きます（タグは <code>latest</code> と <code>sha-&lt;コミット&gt;</code>、<code>v1.2.3</code> のようなタグを打つと <code>1.2.3</code> も）。プルリクエストではビルドの確認だけ行います。amd64 と arm64 の両方を作ります。</p>
+<p>最初の1回だけ、GitHub の「Packages → cockpit-demo → Package settings」で公開範囲を <strong>Public</strong> にしてください。非公開のままにする場合は、クラスタに <code>imagePullSecret</code> を登録して <code>k8s/deployment.yaml</code> に指定します。</p>
+<h3 id="kubernetes-に置く">Kubernetes に置く</h3>
+<div class="tbl"><table><thead><tr><th>ファイル</th><th>内容</th></tr></thead><tbody><tr><td><code>k8s/deployment.yaml</code></td><td>2 レプリカの Deployment（読み取り専用ファイルシステム、権限を全部落とした安全側の設定、readiness / liveness）</td></tr><tr><td><code>k8s/service.yaml</code></td><td>クラスタ内の Service（80 番 → コンテナの 8080 番）</td></tr><tr><td><code>k8s/ingress.yaml</code></td><td>外部公開用の Ingress（任意。<code>host</code> を自分のドメインに書き換える）</td></tr><tr><td><code>k8s/pod.yaml</code></td><td>試しに 1 つだけ動かす単体 Pod</td></tr><tr><td><code>k8s/kustomization.yaml</code></td><td>上の Deployment と Service をまとめて適用する</td></tr></tbody></table></div>
+<pre class=""><code>kubectl apply -k k8s/
+kubectl port-forward svc/cockpit-demo 8080:80      # → http://localhost:8080/</code></pre>
+<p>単体の Pod だけ試すときは <code>kubectl apply -f k8s/pod.yaml</code> と <code>kubectl port-forward pod/cockpit-demo 8080:8080</code>。新しいイメージに入れ替えるときは <code>kubectl rollout restart deployment/cockpit-demo</code> です（<code>latest</code> を毎回取り直す設定）。</p>
 <h2 id="ファイル構成">ファイル構成</h2>
 <pre class=""><code>.
 ├── index.html              画面（ダッシュボード・配置図・字幕・進行カード）
@@ -91,6 +105,9 @@ th, td { border-bottom: 1px solid var(--rule); padding: 7px 10px; text-align: le
 ├── publish.sh / publish.ps1  検証して GitHub に push
 ├── .github/workflows/pages.yml  push 時に検証して Pages に公開
 ├── docs/PUBLISHING.md      公開の手順
+├── Dockerfile              コンテナイメージ（nginx で配信。設定は deploy/nginx.conf）
+├── k8s/                    Kubernetes のマニフェスト（Deployment / Service / Ingress / 単体 Pod）
+├── .github/workflows/container.yml  push 時にイメージを作って GHCR に置く
 └── assets/fonts/           英字フォント（Chakra Petch / JetBrains Mono, SIL Open Font License）</code></pre>
 <p>数値・地名・交信文はすべて演出用の架空のものです。</p>
 </main></body></html>

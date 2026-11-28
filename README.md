@@ -130,6 +130,42 @@ GitHub Pages と同じ内容を Vercel でも公開できます（ビルドな�
 
 `scenarios/builtin.js` と `readme.html` はコミット済みのものをそのまま配信します。シナリオを変えたら `publish.sh`（または `python3 tools/bundle.py` と `python3 tools/build_docs.py`）で作り直してからコミットしてください。
 
+## コンテナ / Kubernetes で動かす
+
+nginx で静的ファイルを配るだけのコンテナイメージにまとめてあります（`Dockerfile`）。ビルドの途中でシナリオの検証、`builtin.js` と使い方ページの作り直し、配布用 zip の作成を行います。待ち受けは **8080 番**、root 以外のユーザーで動き、`/healthz` が死活確認用です。
+
+### 手元で動かす
+
+```
+docker build -t cockpit-demo .
+docker run --rm -p 8080:8080 cockpit-demo
+```
+
+`http://localhost:8080/` でデモ、`/story/` で説明動画が開きます。
+
+### イメージの自動作成（GHCR）
+
+`.github/workflows/container.yml` が、`main` への push のたびにイメージを作り `ghcr.io/kenscafe/cockpit-demo` に置きます（タグは `latest` と `sha-<コミット>`、`v1.2.3` のようなタグを打つと `1.2.3` も）。プルリクエストではビルドの確認だけ行います。amd64 と arm64 の両方を作ります。
+
+最初の1回だけ、GitHub の「Packages → cockpit-demo → Package settings」で公開範囲を **Public** にしてください。非公開のままにする場合は、クラスタに `imagePullSecret` を登録して `k8s/deployment.yaml` に指定します。
+
+### Kubernetes に置く
+
+| ファイル | 内容 |
+| --- | --- |
+| `k8s/deployment.yaml` | 2 レプリカの Deployment（読み取り専用ファイルシステム、権限を全部落とした安全側の設定、readiness / liveness） |
+| `k8s/service.yaml` | クラスタ内の Service（80 番 → コンテナの 8080 番） |
+| `k8s/ingress.yaml` | 外部公開用の Ingress（任意。`host` を自分のドメインに書き換える） |
+| `k8s/pod.yaml` | 試しに 1 つだけ動かす単体 Pod |
+| `k8s/kustomization.yaml` | 上の Deployment と Service をまとめて適用する |
+
+```
+kubectl apply -k k8s/
+kubectl port-forward svc/cockpit-demo 8080:80      # → http://localhost:8080/
+```
+
+単体の Pod だけ試すときは `kubectl apply -f k8s/pod.yaml` と `kubectl port-forward pod/cockpit-demo 8080:8080`。新しいイメージに入れ替えるときは `kubectl rollout restart deployment/cockpit-demo` です（`latest` を毎回取り直す設定）。
+
 ## ファイル構成
 
 ```
@@ -160,6 +196,9 @@ GitHub Pages と同じ内容を Vercel でも公開できます（ビルドな�
 ├── publish.sh / publish.ps1  検証して GitHub に push
 ├── .github/workflows/pages.yml  push 時に検証して Pages に公開
 ├── docs/PUBLISHING.md      公開の手順
+├── Dockerfile              コンテナイメージ（nginx で配信。設定は deploy/nginx.conf）
+├── k8s/                    Kubernetes のマニフェスト（Deployment / Service / Ingress / 単体 Pod）
+├── .github/workflows/container.yml  push 時にイメージを作って GHCR に置く
 └── assets/fonts/           英字フォント（Chakra Petch / JetBrains Mono, SIL Open Font License）
 ```
 

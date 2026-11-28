@@ -1,0 +1,9 @@
+.git
+.github
+_site
+_zip
+**/__pycache__
+**/.DS_Store
+tools/voices
+k8s
+*.md.bak
