@@ -1,0 +1,41 @@
+# 試しに 1 つだけ動かすときの単体 Pod（本番は deployment.yaml を使う）
+#   kubectl apply -f k8s/pod.yaml
+#   kubectl port-forward pod/cockpit-demo 8080:8080   → http://localhost:8080/
+apiVersion: v1
+kind: Pod
+metadata:
+  name: cockpit-demo
+  labels:
+    app.kubernetes.io/name: cockpit-demo
+spec:
+  securityContext:
+    runAsNonRoot: true
+    runAsUser: 101
+    runAsGroup: 101
+    seccompProfile:
+      type: RuntimeDefault
+  containers:
+    - name: web
+      image: ghcr.io/kenscafe/cockpit-demo:latest
+      ports:
+        - name: http
+          containerPort: 8080
+      readinessProbe:
+        httpGet: { path: /healthz, port: http }
+      livenessProbe:
+        httpGet: { path: /healthz, port: http }
+        initialDelaySeconds: 5
+      resources:
+        requests: { cpu: 10m, memory: 32Mi }
+        limits: { cpu: 200m, memory: 128Mi }
+      securityContext:
+        allowPrivilegeEscalation: false
+        readOnlyRootFilesystem: true
+        capabilities:
+          drop: ["ALL"]
+      volumeMounts:
+        - name: tmp
+          mountPath: /tmp
+  volumes:
+    - name: tmp
+      emptyDir: {}

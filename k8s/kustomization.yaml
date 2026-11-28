@@ -1,0 +1,11 @@
+# kubectl apply -k k8s/   で Deployment と Service を作る（Ingress は必要なら下の行のコメントを外す）
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+resources:
+  - deployment.yaml
+  - service.yaml
+  # - ingress.yaml
+# イメージのタグを固定したいとき:
+# images:
+#   - name: ghcr.io/kenscafe/cockpit-demo
+#     newTag: sha-1234567

@@ -1,0 +1,21 @@
+# 外部公開用（任意）。ingress-nginx などの Ingress コントローラがあるクラスタで使う。
+# host を自分のドメインに書き換えてから kubectl apply -f k8s/ingress.yaml
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: cockpit-demo
+  labels:
+    app.kubernetes.io/name: cockpit-demo
+spec:
+  ingressClassName: nginx
+  rules:
+    - host: cockpit-demo.example.com
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: cockpit-demo
+                port:
+                  name: http

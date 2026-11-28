@@ -1,0 +1,14 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: cockpit-demo
+  labels:
+    app.kubernetes.io/name: cockpit-demo
+spec:
+  type: ClusterIP
+  selector:
+    app.kubernetes.io/name: cockpit-demo
+  ports:
+    - name: http
+      port: 80
+      targetPort: http
