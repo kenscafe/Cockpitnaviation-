@@ -112,6 +112,8 @@ code { font: 13px var(--f-mono); background: var(--card); border: 1px solid var(
 pre { background: var(--card); border: 1px solid var(--rule); border-radius: 8px; padding: 12px 14px; overflow-x: auto; }
 pre code { border: 0; padding: 0; background: none; overflow-wrap: normal; }
 .tbl { overflow-x: auto; } table { border-collapse: collapse; width: 100%; font-size: 14px; }
+.nav .brand { width: 28px; height: 28px; margin-right: -6px; }
+.copy { text-align: center; font: 12px/1.5 var(--f-mono); letter-spacing: .06em; color: var(--dim); padding: 14px 16px 24px; border-top: 1px solid var(--rule); }
 th, td { border-bottom: 1px solid var(--rule); padding: 7px 10px; text-align: left; vertical-align: top; } th { color: var(--dim); font-weight: 600; white-space: nowrap; }
 '''
 
@@ -120,13 +122,15 @@ def page(title, body, out_path, demo):
     nav = [('readme.html', '使い方'), ('docs/scenario-format.html', 'シナリオの書き方'), ('docs/publishing.html', '更新と公開')]
     links = ''.join(f'<a href="{rel(out_path, p)}"{" aria-current=page" if p == out_path else ""}>{t}</a>' for p, t in nav)
     fonts = rel(out_path, 'assets/fonts/fonts.css')
+    logo = rel(out_path, 'assets/img/kenscafe-logo.png')
     return f'''<!doctype html>
 <html lang="ja"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>{html.escape(title)}</title><link rel="stylesheet" href="{fonts}"><style>{CSS}</style></head>
-<body><nav class="nav"><a class="back" href="{demo}">← デモに戻る</a>{links}</nav>
+<body><nav class="nav"><img class="brand" src="{logo}" alt="AI CRAFT Kenscafe" width="28" height="28"><a class="back" href="{demo}">← デモに戻る</a>{links}</nav>
 <main>
 {body}
-</main></body></html>
+</main>
+<footer class="copy">Copyright &copy; Kenscafe</footer></body></html>
 '''
 
 

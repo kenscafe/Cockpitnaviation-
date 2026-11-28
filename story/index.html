@@ -50,11 +50,14 @@ button:focus-visible,a:focus-visible{outline:2px solid var(--accent);outline-off
 .demo-cta .go-title{font:800 clamp(19px,2.6vw,24px)/1.3 var(--f-body);letter-spacing:.02em}
 .demo-cta .go-sub{font:500 14px/1.5 var(--f-body);color:#4a3d00}
 .demo-cta .go-arrow{flex:none;font:700 26px/1 var(--f-disp)}
+.brand{display:block;width:40px;height:40px;margin-bottom:-8px}
+.copy{text-align:center;font:12px/1.5 var(--f-mono);letter-spacing:.06em;color:var(--muted);padding-top:14px;border-top:1px solid var(--line)}
 @media (max-width:480px){.demo-cta{gap:12px;padding:14px 16px}.demo-cta .go-ico{width:46px;height:46px}.demo-cta .go-arrow{display:none}}
 </style>
 </head>
 <body>
 <div class="wrap">
+  <img class="brand" src="../assets/img/kenscafe-logo.png" alt="AI CRAFT Kenscafe" width="40" height="40">
   <header class="top">
     <div>
       <div class="eyebrow"><span class="t-ja">デモ画面の説明動画 ・ 約2分</span><span class="t-en">Screen tour video · about 1.5 min</span></div>
@@ -81,6 +84,7 @@ button:focus-visible,a:focus-visible{outline:2px solid var(--accent);outline-off
     </span>
     <span class="go-arrow" aria-hidden="true">→</span>
   </a>
+  <footer class="copy">Copyright &copy; Kenscafe</footer>
 </div>
 
 <script src="tour-chapters.js"></script>

@@ -17,9 +17,11 @@ code { font: 13px var(--f-mono); background: var(--card); border: 1px solid var(
 pre { background: var(--card); border: 1px solid var(--rule); border-radius: 8px; padding: 12px 14px; overflow-x: auto; }
 pre code { border: 0; padding: 0; background: none; overflow-wrap: normal; }
 .tbl { overflow-x: auto; } table { border-collapse: collapse; width: 100%; font-size: 14px; }
+.nav .brand { width: 28px; height: 28px; margin-right: -6px; }
+.copy { text-align: center; font: 12px/1.5 var(--f-mono); letter-spacing: .06em; color: var(--dim); padding: 14px 16px 24px; border-top: 1px solid var(--rule); }
 th, td { border-bottom: 1px solid var(--rule); padding: 7px 10px; text-align: left; vertical-align: top; } th { color: var(--dim); font-weight: 600; white-space: nowrap; }
 </style></head>
-<body><nav class="nav"><a class="back" href="../index.html">← デモに戻る</a><a href="../readme.html">使い方</a><a href="../docs/scenario-format.html">シナリオの書き方</a><a href="../docs/publishing.html" aria-current=page>更新と公開</a></nav>
+<body><nav class="nav"><img class="brand" src="../assets/img/kenscafe-logo.png" alt="AI CRAFT Kenscafe" width="28" height="28"><a class="back" href="../index.html">← デモに戻る</a><a href="../readme.html">使い方</a><a href="../docs/scenario-format.html">シナリオの書き方</a><a href="../docs/publishing.html" aria-current=page>更新と公開</a></nav>
 <main>
 <h1 id="github-への-push-と公開">GitHub への push と公開</h1>
 <p><code>main</code> ブランチに push すると、GitHub Actions（<code>.github/workflows/pages.yml</code>）が次を自動で行います。</p>
@@ -33,4 +35,5 @@ th, td { border-bottom: 1px solid var(--rule); padding: 7px 10px; text-align: le
 <div class="tbl"><table><thead><tr><th>環境</th><th>コマンド</th></tr></thead><tbody><tr><td>Mac / Linux</td><td><code>./publish.sh &quot;SKY 900 のシナリオを追加&quot;</code></td></tr><tr><td>Windows</td><td><code>powershell -ExecutionPolicy Bypass -File publish.ps1 &quot;SKY 900 のシナリオを追加&quot;</code></td></tr></tbody></table></div>
 <p>スクリプトは、検証 → builtin.js の作り直し → commit → pull --rebase → push を順に行います。Node.js・Python 3・Git が必要です。<br>push から1〜2分で公開ページが更新されます（<code>https://&lt;ユーザー名&gt;.github.io/&lt;リポジトリ名&gt;/</code>）。</p>
 <p>GitHub の画面から JSON をアップロードしたり直接編集したりしても、同じように自動で検証・公開されます。手動で公開し直したいときは Actions タブの「検証して GitHub Pages に公開」→ <strong>Run workflow</strong>。</p>
-</main></body></html>
+</main>
+<footer class="copy">Copyright &copy; Kenscafe</footer></body></html>
