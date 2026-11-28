@@ -125,6 +125,11 @@ body { padding-block: 20px 40px; }
 <style>
 /* Platform additions: scenario loader bar, drop overlay, error dialog, sensor panel. */
 .bar h1 { min-width: 0; }
+.bar .brandLogo { width: 36px; height: 36px; flex: none; margin-right: -10px; }
+/* Copyright line: pinned to the very bottom of the window; fit() in app.js leaves room for it. */
+.copy { position: fixed; left: 0; right: 0; bottom: 0; z-index: 5; text-align: center; padding: 3px 16px calc(3px + env(safe-area-inset-bottom, 0px));
+  font: 11px/1.5 var(--f-mono); letter-spacing: .06em; color: var(--dim); background: rgba(12,17,23,.92); border-top: 1px solid var(--rule); }
+body { padding-bottom: 48px; }
 .loader { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
 .loader select { font: 12px var(--f-body); color: var(--fg); background: #1a222d; border: 1px solid var(--edge); border-radius: 6px; padding: 6px 8px; max-width: 320px; }
 .loader .lbl { font-family: var(--f-mono); font-size: 10px; letter-spacing: .12em; color: var(--dim); }
@@ -162,6 +167,7 @@ body { padding-block: 20px 40px; }
 <body>
 <div class="stage">
   <div class="bar">
+    <img class="brandLogo" src="assets/img/kenscafe-logo.png" alt="AI CRAFT Kenscafe" width="36" height="36">
     <h1 id="hTitle">SKY 501 シミュレーションデモ<small id="hSub"></small></h1>
     <div class="loader">
       <span class="lbl">SCENARIO</span>
@@ -872,6 +878,7 @@ body { padding-block: 20px 40px; }
     <div class="sgrid" id="sgrid"></div>
   </details>
 </div>
+<footer class="copy" id="copyright">Copyright &copy; Kenscafe</footer>
 <div class="drop" id="drop">シナリオのJSONファイルをここにドロップ</div>
 <div class="msg" id="msg" role="alert"></div>
 <script src="js/i18n.js"></script>

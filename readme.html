@@ -17,9 +17,11 @@ code { font: 13px var(--f-mono); background: var(--card); border: 1px solid var(
 pre { background: var(--card); border: 1px solid var(--rule); border-radius: 8px; padding: 12px 14px; overflow-x: auto; }
 pre code { border: 0; padding: 0; background: none; overflow-wrap: normal; }
 .tbl { overflow-x: auto; } table { border-collapse: collapse; width: 100%; font-size: 14px; }
+.nav .brand { width: 28px; height: 28px; margin-right: -6px; }
+.copy { text-align: center; font: 12px/1.5 var(--f-mono); letter-spacing: .06em; color: var(--dim); padding: 14px 16px 24px; border-top: 1px solid var(--rule); }
 th, td { border-bottom: 1px solid var(--rule); padding: 7px 10px; text-align: left; vertical-align: top; } th { color: var(--dim); font-weight: 600; white-space: nowrap; }
 </style></head>
-<body><nav class="nav"><a class="back" href="index.html">← デモに戻る</a><a href="readme.html" aria-current=page>使い方</a><a href="docs/scenario-format.html">シナリオの書き方</a><a href="docs/publishing.html">更新と公開</a></nav>
+<body><nav class="nav"><img class="brand" src="assets/img/kenscafe-logo.png" alt="AI CRAFT Kenscafe" width="28" height="28"><a class="back" href="index.html">← デモに戻る</a><a href="readme.html" aria-current=page>使い方</a><a href="docs/scenario-format.html">シナリオの書き方</a><a href="docs/publishing.html">更新と公開</a></nav>
 <main>
 <h1 id="コックピット-デモプラットフォーム">コックピット デモプラットフォーム</h1>
 <p><a href="https://github.com/kenscafe/Cockpitnaviation-/actions/workflows/pages.yml"><img alt="検証して GitHub Pages に公開" src="https://github.com/kenscafe/Cockpitnaviation-/actions/workflows/pages.yml/badge.svg"></a></p>
@@ -110,4 +112,5 @@ kubectl port-forward svc/cockpit-demo 8080:80      # → http://localhost:8080/<
 ├── .github/workflows/container.yml  push 時にイメージを作って GHCR に置く
 └── assets/fonts/           英字フォント（Chakra Petch / JetBrains Mono, SIL Open Font License）</code></pre>
 <p>数値・地名・交信文はすべて演出用の架空のものです。</p>
-</main></body></html>
+</main>
+<footer class="copy">Copyright &copy; Kenscafe</footer></body></html>

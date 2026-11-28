@@ -199,7 +199,8 @@
     if (innerWidth < 1100) return;
     const top = stage.getBoundingClientRect().top;
     const need = $('card').getBoundingClientRect().bottom - top;
-    const avail = innerHeight - Math.max(0, top) - 8;
+    const copy = document.getElementById('copyright');
+    const avail = innerHeight - Math.max(0, top) - 8 - (copy ? copy.offsetHeight : 0);
     if (need <= avail) return;
     const s = Math.max(.4, avail / need);
     stage.style.transformOrigin = 'top center';
