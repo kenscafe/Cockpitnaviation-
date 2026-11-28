@@ -24,10 +24,10 @@ th, td { border-bottom: 1px solid var(--rule); padding: 7px 10px; text-align: le
 <h1 id="コックピット-デモプラットフォーム">コックピット デモプラットフォーム</h1>
 <p><a href="https://github.com/kenscafe/Cockpitnaviation-/actions/workflows/pages.yml"><img alt="検証して GitHub Pages に公開" src="https://github.com/kenscafe/Cockpitnaviation-/actions/workflows/pages.yml/badge.svg"></a></p>
 <p>ソフトウェア制御の旅客機を題材に、コックピットのダッシュボードと、エンジン・飛行制御などの分散システム、AI、パイロットの連携を見せるデモです。<br><strong>シナリオ（JSONファイル）を読み込んで再生</strong>します。ダッシュボードの表示は、シナリオに書いたセンサー値から毎フレーム計算されます。</p>
-<p><strong>▶ デモを開く：<a href="https://kenscafe.github.io/Cockpitnaviation-/">https://kenscafe.github.io/Cockpitnaviation-/</a></strong><br>（オフライン用の zip：<a href="https://kenscafe.github.io/Cockpitnaviation-/cockpit-demo-platform.zip">https://kenscafe.github.io/Cockpitnaviation-/cockpit-demo-platform.zip</a> ）<br><strong>▶ 説明動画（約2分・日本語ナレーション・日英字幕）：<a href="https://kenscafe.github.io/Cockpitnaviation-/story/">https://kenscafe.github.io/Cockpitnaviation-/story/</a></strong></p>
+<p><strong>▶ デモを開く：<a href="https://kenscafe.github.io/Cockpitnaviation-/">https://kenscafe.github.io/Cockpitnaviation-/</a></strong><br>（オフライン用の zip：<a href="https://kenscafe.github.io/Cockpitnaviation-/cockpit-demo-platform.zip">https://kenscafe.github.io/Cockpitnaviation-/cockpit-demo-platform.zip</a> ）<br><strong>▶ 説明動画（日本語版 約2分／英語版 約1分半）：<a href="https://kenscafe.github.io/Cockpitnaviation-/story/">https://kenscafe.github.io/Cockpitnaviation-/story/</a></strong></p>
 <h2 id="説明動画">説明動画</h2>
-<p><code>story/index.html</code> は、デモ画面の見方を約2分で案内する動画のページです。デモ画面右上の「説明動画 ▶」から別タブで開きます。ナレーションは日本語、字幕は日本語と英語の併記で、章ボタンから各場面に飛べます。最後の「ライブデモを開始する」からデモ画面に移れます。</p>
-<ul><li>動画：<code>story/tour.mp4</code>（ポスター画像 <code>story/img/tour-poster.jpg</code>、章の一覧 <code>story/tour-chapters.js</code>）</li><li>作り方：<code>python3 tools/tour/make.py</code>。台本 <code>tools/tour/tour.json</code> のナレーションを Open JTalk で合成し、Playwright でデモ画面を台本どおりに操作して録画し、ffmpeg で合わせます。画面や台本を変えたら作り直してください（声のファイルの用意は <code>tools/voice_render.py</code> と同じ）</li></ul>
+<p><code>story/index.html</code> は、デモ画面の見方を約2分で案内する動画のページです。デモ画面右上の「説明動画 ▶」から別タブで開きます。日本語表示では日本語ナレーションと日英字幕の動画、English 表示では英語画面・英語ナレーション・英語字幕の動画が流れます（言語はデモ画面と共通）。章ボタンから各場面に飛べます。最後の「ライブデモを開始する」からデモ画面に移れます。</p>
+<ul><li>動画：日本語版 <code>story/tour.mp4</code>（ポスター画像 <code>story/img/tour-poster.jpg</code>、章の一覧 <code>story/tour-chapters.js</code>）、英語版 <code>story/tour-en.mp4</code>（<code>story/img/tour-en-poster.jpg</code>、<code>story/tour-chapters-en.js</code>）</li><li>作り方：<code>python3 tools/tour/make.py</code>。台本 <code>tools/tour/tour.json</code> のナレーションを Open JTalk で合成し、Playwright でデモ画面を台本どおりに操作して録画し、ffmpeg で合わせます。画面や台本を変えたら作り直してください（声のファイルの用意は <code>tools/voice_render.py</code> と同じ）</li><li>英語版：<code>python3 tools/tour/make.py --lang en --piper-model en-us-lessac-medium.onnx</code>。英語ナレーションはオフラインのニューラル音声合成 Piper（<code>pip install piper-tts</code>、声は <a href="https://github.com/rhasspy/piper/releases/tag/v0.0.2">Piper v0.0.2 のリリース</a> の <code>voice-en-us-lessac-medium.tar.gz</code>）で作り、デモ画面を英語表示で録ります。台本の <code>en</code> を読み上げ、<code>en_do</code> / <code>en_hl</code> があれば英語版だけそちらの操作と強調枠を使います</li></ul>
 <h2 id="起動方法">起動方法</h2>
 <h3 id="web-で見る">Web で見る</h3>
 <ol><li>上の「デモを開く」のURLをブラウザで開きます。</li><li>画面右上の「SCENARIO」からシナリオを選びます。最初は「SKY 501 羽田 → 新千歳」が流れます。</li><li>本番では、字幕帯の右にある「音声 オン」を押してください。1倍速に切り替わり、セリフが読み上げられます。声は最初「収録音声（同梱）」で、どのパソコンでも同じ声が流れます。「ブラウザ音声」に切り替えると、そのパソコンに入っている日本語の声のうち品質の良いものを話者ごとに選んで読み上げます。</li></ol>
@@ -81,7 +81,7 @@ kubectl port-forward svc/cockpit-demo 8080:80      # → http://localhost:8080/<
 <pre class=""><code>.
 ├── index.html              画面（ダッシュボード・配置図・字幕・進行カード）
 ├── readme.html             画面右上「使い方 ?」で開くページ（README.md から tools/build_docs.py で生成）
-├── story/                  画面右上「説明動画 ▶」で開く説明動画のページ（tour.mp4 は tools/tour/make.py で生成）
+├── story/                  画面右上「説明動画 ▶」で開く説明動画のページ（tour.mp4 / tour-en.mp4 は tools/tour/make.py で生成）
 ├── js/
 │   ├── core.js             シナリオの読み込みと検証、センサー値の補間、健全性と警告の判定
 │   ├── dashboard.js        ダッシュボードと配置図の描画（センサー値と判定結果から描く）

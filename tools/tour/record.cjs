@@ -1,9 +1,11 @@
 /* デモ画面を台本どおりに自動操作して録画する（tools/tour/make.py から呼ばれる）。
-   使い方: node tools/tour/record.cjs <tour.json> <durations.json> <出力フォルダ>
+   使い方: node tools/tour/record.cjs <tour.json> <durations.json> <出力フォルダ> [ja|en]
+   en のときはデモ画面を英語表示で録り、字幕は英語だけを大きく出す。各段の en_do / en_hl があればそちらを使う
    出力: <出力フォルダ>/raw.webm と timings.json（各段の開始秒。録画の先頭が 0） */
 const path = require('path'), fs = require('fs');
 const { chromium } = require('playwright');
-const [tourPath, durPath, outDir] = process.argv.slice(2);
+const [tourPath, durPath, outDir, LANG = 'ja'] = process.argv.slice(2);
+const EN = LANG === 'en';
 const tour = JSON.parse(fs.readFileSync(tourPath, 'utf8'));
 const durs = JSON.parse(fs.readFileSync(durPath, 'utf8'));
 const root = path.resolve(__dirname, '..', '..');
@@ -11,7 +13,7 @@ const [W, H] = tour.viewport || [1600, 900];
 const sleep = ms => new Promise(r => setTimeout(r, ms));
 
 // 画面に重ねる字幕・強調枠・タイトルカード
-const OVERLAY = () => {
+const OVERLAY = en => {
   const css = document.createElement('style');
   css.textContent = `
   #tourHl{position:fixed;border:3px solid #45cdea;border-radius:12px;box-shadow:0 0 0 9999px rgba(3,6,10,.45),0 0 24px rgba(69,205,234,.55);pointer-events:none;z-index:9998;transition:all .45s cubic-bezier(.2,.7,.2,1);opacity:0}
@@ -22,6 +24,8 @@ const OVERLAY = () => {
   #tourCap .en{font-size:17px;line-height:1.4;color:#9fb6c9;margin-top:4px}
   #tourCard{position:fixed;inset:0;z-index:9997;display:grid;place-items:center;background:radial-gradient(900px 500px at 50% 40%,rgba(18,50,74,.92),rgba(3,6,10,.94));opacity:0;transition:opacity .6s;pointer-events:none;text-align:center;color:#e9eef4;font-family:"Noto Sans JP",sans-serif}
   #tourCard.on{opacity:1}
+  #tourCap.only .ja{font-family:"Chakra Petch","Noto Sans",sans-serif;font-size:25px}
+  #tourCap.only .en{display:none}
   #tourCard .k{font:600 18px "Chakra Petch",sans-serif;letter-spacing:.2em;color:#45cdea}
   #tourCard .h{font-size:56px;font-weight:700;margin:14px 0 8px}
   #tourCard .s{font:500 24px "Chakra Petch","Noto Sans JP",sans-serif;color:#9fb6c9}`;
@@ -29,7 +33,10 @@ const OVERLAY = () => {
   const hl = document.createElement('div'); hl.id = 'tourHl';
   const cap = document.createElement('div'); cap.id = 'tourCap'; cap.innerHTML = '<div class="tt"></div><div class="ja"></div><div class="en"></div>';
   const card = document.createElement('div'); card.id = 'tourCard';
-  card.innerHTML = '<div><div class="k">COCKPIT DEMO PLATFORM</div><div class="h">コックピット デモ　画面の見方</div><div class="s">How to read the cockpit demo screen</div></div>';
+  card.innerHTML = en
+    ? '<div><div class="k">COCKPIT DEMO PLATFORM</div><div class="h">How to read the cockpit demo</div><div class="s">Screen tour</div></div>'
+    : '<div><div class="k">COCKPIT DEMO PLATFORM</div><div class="h">コックピット デモ　画面の見方</div><div class="s">How to read the cockpit demo screen</div></div>';
+  if (en) cap.classList.add('only');
   document.body.append(card, hl, cap);
   let target = null;
   const rectOf = t => {
@@ -69,7 +76,7 @@ const OVERLAY = () => {
   const t0 = Date.now();
   const p = await ctx.newPage();
   p.on('pageerror', e => console.error('page error:', e.message));
-  const url = s => 'file://' + path.join(root, 'index.html') + '?lang=ja&s=' + s;
+  const url = s => 'file://' + path.join(root, 'index.html') + '?lang=' + LANG + '&s=' + s;
   async function act(a) {
     const [k, x, y] = a;
     if (k === 'load') {
@@ -92,7 +99,7 @@ const OVERLAY = () => {
   }
 
   await p.goto(url('b:0')); await p.waitForTimeout(1200);
-  await p.evaluate(OVERLAY);
+  await p.evaluate(OVERLAY, EN);
   await p.evaluate(() => { SkyDemo.App.pause(); SkyDemo.App.seek(0); document.fonts && document.fonts.ready; });
   await p.waitForTimeout(800);
 
@@ -101,10 +108,12 @@ const OVERLAY = () => {
     const D = (durs[sg.id] + (sg.pad ?? 0.8)) * 1000;
     const start = Date.now();
     timings.push({ id: sg.id, start: (start - t0) / 1000, dur: D / 1000, title: sg.title, title_en: sg.title_en });
-    await p.evaluate(([tt, ja, en, card]) => { __tour.cap(tt, ja, en); __tour.card(!!card); if (card) __tour.hl(null); }, [sg.title + ' · ' + sg.title_en, sg.ja, sg.en, sg.card]);
-    const timers = (sg.hl || []).map(([o, t]) => setTimeout(() => p.evaluate(t => __tour.hl(t), t).catch(() => {}), o * 1000));
-    if (!(sg.hl || []).length && !sg.card) await p.evaluate(() => __tour.hl(null));
-    for (const a of sg.do || []) await act(a);
+    const cap = EN ? [sg.title_en, sg.en, ''] : [sg.title + ' · ' + sg.title_en, sg.ja, sg.en];
+    await p.evaluate(([tt, ja, en, card]) => { __tour.cap(tt, ja, en); __tour.card(!!card); if (card) __tour.hl(null); }, [...cap, sg.card]);
+    const HL = (EN && sg.en_hl) || sg.hl || [], DO = (EN && sg.en_do) || sg.do || [];
+    const timers = HL.map(([o, t]) => setTimeout(() => p.evaluate(t => __tour.hl(t), t).catch(() => {}), o * 1000));
+    if (!HL.length && !sg.card) await p.evaluate(() => __tour.hl(null));
+    for (const a of DO) await act(a);
     const left = D - (Date.now() - start);
     if (left > 0) await sleep(left);
     timers.forEach(clearTimeout);
