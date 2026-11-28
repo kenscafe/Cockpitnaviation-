@@ -7,14 +7,15 @@
 
 **▶ デモを開く：https://kenscafe.github.io/Cockpitnaviation-/**
 （オフライン用の zip：https://kenscafe.github.io/Cockpitnaviation-/cockpit-demo-platform.zip ）
-**▶ 説明動画（約2分・日本語ナレーション・日英字幕）：https://kenscafe.github.io/Cockpitnaviation-/story/**
+**▶ 説明動画（日本語版 約2分／英語版 約1分半）：https://kenscafe.github.io/Cockpitnaviation-/story/**
 
 ## 説明動画
 
-`story/index.html` は、デモ画面の見方を約2分で案内する動画のページです。デモ画面右上の「説明動画 ▶」から別タブで開きます。ナレーションは日本語、字幕は日本語と英語の併記で、章ボタンから各場面に飛べます。最後の「ライブデモを開始する」からデモ画面に移れます。
+`story/index.html` は、デモ画面の見方を約2分で案内する動画のページです。デモ画面右上の「説明動画 ▶」から別タブで開きます。日本語表示では日本語ナレーションと日英字幕の動画、English 表示では英語画面・英語ナレーション・英語字幕の動画が流れます（言語はデモ画面と共通）。章ボタンから各場面に飛べます。最後の「ライブデモを開始する」からデモ画面に移れます。
 
-- 動画：`story/tour.mp4`（ポスター画像 `story/img/tour-poster.jpg`、章の一覧 `story/tour-chapters.js`）
+- 動画：日本語版 `story/tour.mp4`（ポスター画像 `story/img/tour-poster.jpg`、章の一覧 `story/tour-chapters.js`）、英語版 `story/tour-en.mp4`（`story/img/tour-en-poster.jpg`、`story/tour-chapters-en.js`）
 - 作り方：`python3 tools/tour/make.py`。台本 `tools/tour/tour.json` のナレーションを Open JTalk で合成し、Playwright でデモ画面を台本どおりに操作して録画し、ffmpeg で合わせます。画面や台本を変えたら作り直してください（声のファイルの用意は `tools/voice_render.py` と同じ）
+- 英語版：`python3 tools/tour/make.py --lang en --piper-model en-us-lessac-medium.onnx`。英語ナレーションはオフラインのニューラル音声合成 Piper（`pip install piper-tts`、声は [Piper v0.0.2 のリリース](https://github.com/rhasspy/piper/releases/tag/v0.0.2) の `voice-en-us-lessac-medium.tar.gz`）で作り、デモ画面を英語表示で録ります。台本の `en` を読み上げ、`en_do` / `en_hl` があれば英語版だけそちらの操作と強調枠を使います
 
 ## 起動方法
 
@@ -172,7 +173,7 @@ kubectl port-forward svc/cockpit-demo 8080:80      # → http://localhost:8080/
 .
 ├── index.html              画面（ダッシュボード・配置図・字幕・進行カード）
 ├── readme.html             画面右上「使い方 ?」で開くページ（README.md から tools/build_docs.py で生成）
-├── story/                  画面右上「説明動画 ▶」で開く説明動画のページ（tour.mp4 は tools/tour/make.py で生成）
+├── story/                  画面右上「説明動画 ▶」で開く説明動画のページ（tour.mp4 / tour-en.mp4 は tools/tour/make.py で生成）
 ├── js/
 │   ├── core.js             シナリオの読み込みと検証、センサー値の補間、健全性と警告の判定
 │   ├── dashboard.js        ダッシュボードと配置図の描画（センサー値と判定結果から描く）

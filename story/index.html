@@ -57,9 +57,9 @@ button:focus-visible,a:focus-visible{outline:2px solid var(--accent);outline-off
 <div class="wrap">
   <header class="top">
     <div>
-      <div class="eyebrow"><span class="t-ja">デモ画面の説明動画 ・ 約2分</span><span class="t-en">Screen tour video · about 2 min</span></div>
+      <div class="eyebrow"><span class="t-ja">デモ画面の説明動画 ・ 約2分</span><span class="t-en">Screen tour video · about 1.5 min</span></div>
       <h1><span class="t-ja">コックピット デモ　画面の見方</span><span class="t-en">How to read the cockpit demo screen</span></h1>
-      <p class="lead"><span class="t-ja">6面のディスプレイと機体システムの配置図が何を示しているか、異常の検知から AI の提案、パイロットの承認までを、実際の画面で案内します。ナレーションは日本語、字幕は日本語と英語の併記です。</span><span class="t-en">A walk through the real screen: what the six displays and the system layout show, from detecting a fault to the AI proposal and the pilot's approval. Japanese narration, with Japanese and English subtitles.</span></p>
+      <p class="lead"><span class="t-ja">6面のディスプレイと機体システムの配置図が何を示しているか、異常の検知から AI の提案、パイロットの承認までを、実際の画面で案内します。ナレーションは日本語、字幕は日本語と英語の併記です。</span><span class="t-en">A walk through the real screen: what the six displays and the system layout show, from detecting a fault to the AI proposal and the pilot's approval. English screen, English narration and English captions.</span></p>
     </div>
     <div class="lang" role="group" aria-label="Language">
       <button type="button" id="lang-ja" aria-pressed="true">日本語</button>
@@ -68,7 +68,7 @@ button:focus-visible,a:focus-visible{outline:2px solid var(--accent);outline-off
   </header>
 
   <div class="player" data-testid="story-player">
-    <video id="video" controls playsinline preload="metadata" poster="img/tour-poster.jpg" src="tour.mp4"></video>
+    <video id="video" controls playsinline preload="metadata" ></video>
   </div>
 
   <nav class="chapters" id="chapters" aria-label="Chapters"></nav>
@@ -84,19 +84,33 @@ button:focus-visible,a:focus-visible{outline:2px solid var(--accent);outline-off
 </div>
 
 <script src="tour-chapters.js"></script>
+<script src="tour-chapters-en.js"></script>
 <script>
 (function(){
   var root=document.documentElement, video=document.getElementById('video'), nav=document.getElementById('chapters');
-  var T=window.TOUR||{chapters:[],duration:0};
+  /* 日本語は tour.mp4、英語は tour-en.mp4（英語画面・英語ナレーション）。章の時刻も言語ごと */
+  var TJ=window.TOUR||{chapters:[],duration:0}, TE=window.TOUR_EN||TJ, T=TJ, cur=null;
+  var SRC={ja:{src:'tour.mp4',poster:'img/tour-poster.jpg',T:TJ},en:{src:window.TOUR_EN?'tour-en.mp4':'tour.mp4',poster:window.TOUR_EN?'img/tour-en-poster.jpg':'img/tour-poster.jpg',T:TE}};
   function fmt(s){s=Math.max(0,Math.floor(s));return Math.floor(s/60)+':'+String(s%60).padStart(2,'0');}
-  T.chapters.forEach(function(c,i){
-    var b=document.createElement('button'); b.type='button'; b.className='chap';
-    b.innerHTML='<span class="no">'+(i+1)+'</span><span class="tt"><span class="t-ja"></span><span class="t-en"></span></span><span class="tm">'+fmt(c.start)+'</span>';
-    b.querySelector('.t-ja').textContent=c.ja; b.querySelector('.t-en').textContent=c.en;
-    b.addEventListener('click',function(){video.currentTime=c.start+.05;video.play().catch(function(){});});
-    nav.appendChild(b);
-  });
-  var chaps=nav.querySelectorAll('.chap');
+  var chaps=[];
+  function buildChapters(){
+    nav.textContent='';
+    T.chapters.forEach(function(c,i){
+      var b=document.createElement('button'); b.type='button'; b.className='chap';
+      b.innerHTML='<span class="no">'+(i+1)+'</span><span class="tt"><span class="t-ja"></span><span class="t-en"></span></span><span class="tm">'+fmt(c.start)+'</span>';
+      b.querySelector('.t-ja').textContent=c.ja; b.querySelector('.t-en').textContent=c.en;
+      b.addEventListener('click',function(){video.currentTime=c.start+.05;video.play().catch(function(){});});
+      nav.appendChild(b);
+    });
+    chaps=nav.querySelectorAll('.chap');
+  }
+  function useVideo(l){
+    var v=SRC[l]; if(cur===v.src) return;
+    var first=cur===null; cur=v.src; T=v.T;
+    if(!first) video.pause();
+    video.poster=v.poster; video.src=v.src; if(!first) video.load();
+    buildChapters();
+  }
   video.addEventListener('timeupdate',function(){
     var t=video.currentTime, k=0;
     T.chapters.forEach(function(c,i){if(t>=c.start-.01)k=i;});
@@ -107,6 +121,7 @@ button:focus-visible,a:focus-visible{outline:2px solid var(--accent);outline-off
     document.getElementById('lang-ja').setAttribute('aria-pressed',l==='ja');
     document.getElementById('lang-en').setAttribute('aria-pressed',l==='en');
     document.getElementById('demo-link').href='../index.html?lang='+l;
+    useVideo(l);
     try{localStorage.setItem('cockpitDemo.lang',l);}catch(e){}
     try{var u=new URL(location.href);if(u.searchParams.get('lang')!==l){u.searchParams.set('lang',l);history.replaceState(null,'',u);}}catch(e){}
   }

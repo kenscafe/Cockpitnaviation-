@@ -1,37 +1,41 @@
 {
-  "about": "紹介ページの説明動画（story/tour.mp4）の台本。tools/tour/make.py が、ナレーションの合成 → デモ画面の自動操作と録画 → 音声との合成 を行う。各段の長さはナレーションの長さ＋pad 秒。hl は [開始秒, 対象] の並びで、対象は CSS セレクタか {\"svg\": \"#dash svg\", \"rect\": [x, y, w, h]}（SVG の座標）。",
+  "about": "紹介ページの説明動画（story/tour.mp4）の台本。tools/tour/make.py が、ナレーションの合成 → デモ画面の自動操作と録画 → 音声との合成 を行う。各段の長さはナレーションの長さ＋pad 秒。hl は [開始秒, 対象] の並びで、対象は CSS セレクタか {\"svg\": \"#dash svg\", \"rect\": [x, y, w, h]}（SVG の座標）。英語版（--lang en → story/tour-en.mp4）は en を読み上げ、en_do / en_hl があれば do / hl の代わりに使う。",
   "viewport": [1600, 900],
   "segments": [
     {
       "id": "intro", "title": "はじめに", "title_en": "Introduction",
       "ja": "コックピット デモの画面の見方を、約2分で案内します。",
-      "en": "A two-minute tour of the cockpit demo screen.",
+      "en": "A quick tour of the cockpit demo screen.",
       "do": [["load", "b:0", 30]], "card": true, "pad": 1.2
     },
     {
       "id": "layout", "title": "画面の構成", "title_en": "Screen layout",
       "ja": "画面は4つに分かれています。左がコックピットのダッシュボード、右が機体システムの配置図、その下が字幕、いちばん下がフライトの進行です。",
       "en": "The screen has four parts: the cockpit dashboard on the left, the aircraft system layout on the right, captions below, and flight progress at the bottom.",
-      "hl": [[0, "#pDash"], [3.6, "#pAir"], [6.6, ".caption"], [8.4, "#card"]]
+      "hl": [[0, "#pDash"], [3.6, "#pAir"], [6.6, ".caption"], [8.4, "#card"]],
+      "en_hl": [[0, "#pDash"], [3.6, "#pAir"], [6.0, ".caption"], [7.4, "#card"]]
     },
     {
       "id": "upper", "title": "上段の3画面", "title_en": "Upper displays",
       "ja": "ダッシュボードの上の段は、左から、姿勢と航法、エンジンと警告、そしてAIコパイロットの画面です。",
       "en": "The upper row shows attitude and navigation, engines and alerts, and the AI co-pilot.",
-      "hl": [[0, {"svg": "#dash svg", "rect": [20, 128, 500, 420]}], [3.4, {"svg": "#dash svg", "rect": [540, 128, 520, 420]}], [5.2, {"svg": "#dash svg", "rect": [1080, 128, 500, 420]}]]
+      "hl": [[0, {"svg": "#dash svg", "rect": [20, 128, 500, 420]}], [3.4, {"svg": "#dash svg", "rect": [540, 128, 520, 420]}], [5.2, {"svg": "#dash svg", "rect": [1080, 128, 500, 420]}]],
+      "en_hl": [[0, {"svg": "#dash svg", "rect": [20, 128, 500, 420]}], [2.9, {"svg": "#dash svg", "rect": [540, 128, 520, 420]}], [4.3, {"svg": "#dash svg", "rect": [1080, 128, 500, 420]}]]
     },
     {
       "id": "lower", "title": "下段の3画面", "title_en": "Lower displays",
       "ja": "下の段は、人とAIとシステムのやり取りのタイムライン、分散システムのつながり、そして権限モードとシステムの健全性です。",
       "en": "The lower row shows the timeline between people, AI and systems, the distributed systems mesh, and authority mode with system health.",
-      "hl": [[0, {"svg": "#dash svg", "rect": [20, 566, 500, 334]}], [3.8, {"svg": "#dash svg", "rect": [540, 566, 520, 334]}], [6.4, {"svg": "#dash svg", "rect": [1080, 566, 500, 334]}]]
+      "hl": [[0, {"svg": "#dash svg", "rect": [20, 566, 500, 334]}], [3.8, {"svg": "#dash svg", "rect": [540, 566, 520, 334]}], [6.4, {"svg": "#dash svg", "rect": [1080, 566, 500, 334]}]],
+      "en_hl": [[0, {"svg": "#dash svg", "rect": [20, 566, 500, 334]}], [4.4, {"svg": "#dash svg", "rect": [540, 566, 520, 334]}], [6.4, {"svg": "#dash svg", "rect": [1080, 566, 500, 334]}]]
     },
     {
       "id": "detect", "title": "検知：センサー値から", "title_en": "Detect: from sensor values",
       "ja": "上昇中、エンジン2の排気温度が上がり、飛行制御コンピュータの2号機が自動で切り離されました。警告もシステムの図も、センサーの値からそろって変わります。",
       "en": "In the climb, engine 2 exhaust temperature rises and flight control computer 2 is isolated automatically. Alerts and the systems diagram all change together from the sensor values.",
       "do": [["seek", 81]],
-      "hl": [[0, {"svg": "#dash svg", "rect": [540, 128, 520, 420]}], [5.5, {"svg": "#dash svg", "rect": [540, 566, 520, 334]}]]
+      "hl": [[0, {"svg": "#dash svg", "rect": [540, 128, 520, 420]}], [5.5, {"svg": "#dash svg", "rect": [540, 566, 520, 334]}]],
+      "en_hl": [[0, {"svg": "#dash svg", "rect": [540, 128, 520, 420]}], [6.6, {"svg": "#dash svg", "rect": [540, 566, 520, 334]}]]
     },
     {
       "id": "propose", "title": "提案：AIコパイロット", "title_en": "Propose: AI co-pilot",
@@ -64,7 +68,8 @@
       "ja": "センサー値モニターでは、値を手で変えられます。たとえば油圧の2系統をゼロにすると、その場で警告が出て、表示が変わります。",
       "en": "In the sensor monitor you can change values by hand. Set hydraulic system 2 to zero, and a warning appears right away.",
       "do": [["seek", 60], ["monitor", true], ["wait", 4.2], ["hold", "hyd_2", 0]],
-      "hl": [[0, "#sensors"]], "pad": 1.5
+      "hl": [[0, "#sensors"]], "pad": 1.5,
+      "en_do": [["seek", 60], ["monitor", true], ["wait", 3.8], ["hold", "hyd_2", 0]]
     },
     {
       "id": "scenario", "title": "シナリオを選ぶ", "title_en": "Choose a scenario",
@@ -74,17 +79,19 @@
       "hl": [[0, ".loader"]]
     },
     {
-      "id": "lang", "title": "音声と英語表示", "title_en": "Voice and English",
+      "id": "lang", "title": "音声と英語表示", "title_en": "Voice and language",
       "ja": "字幕の横のボタンでセリフを読み上げ、右上のボタンで、表示を英語に切り替えられます。",
-      "en": "The button next to the captions reads the lines aloud, and the switch at the top right changes the display to English.",
+      "en": "The button next to the captions reads the lines aloud, and the switch at the top right changes the display language.",
       "do": [["wait", 3.4], ["lang", "en"]],
-      "hl": [[0, "#voiceBtn"], [3, ".langSw"], [4.2, "#pDash"]], "pad": 1.8
+      "en_do": [["wait", 4.0], ["lang", "ja"]],
+      "hl": [[0, "#voiceBtn"], [3, ".langSw"], [4.2, "#pDash"]], "pad": 1.8,
+      "en_hl": [[0, "#voiceBtn"], [3.6, ".langSw"], [4.8, "#pDash"]]
     },
     {
       "id": "outro", "title": "まとめ", "title_en": "Wrap-up",
       "ja": "異常に気づくのはシステム、選択肢を示すのはAI、決めるのは人。ぜひ、実際に操作してみてください。",
       "en": "Systems notice, AI offers options, people decide. Try it yourself.",
-      "do": [["lang", "ja"]], "card": true, "pad": 2
+      "do": [["lang", "ja"]], "en_do": [["lang", "en"]], "card": true, "pad": 2
     }
   ]
 }

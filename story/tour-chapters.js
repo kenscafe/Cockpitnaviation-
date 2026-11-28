@@ -72,7 +72,7 @@ window.TOUR = {
    "id": "lang",
    "start": 109.7,
    "ja": "音声と英語表示",
-   "en": "Voice and English"
+   "en": "Voice and language"
   },
   {
    "id": "outro",
